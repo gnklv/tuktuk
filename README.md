@@ -4,7 +4,7 @@ A reminder app for tasks that have no fixed time — things you plan to do "some
 
 Tuk-Tuk gives every day a deadline (e.g. 23:00) and nags you about unfinished tasks — gently in the morning, relentlessly towards the evening. A woodpecker mascot, XP, levels and streaks (inspired by Duolingo) make finishing early more rewarding than finishing at 23:55.
 
-> **Status:** early development. See the [roadmap](#roadmap).
+> **Status:** early development. See the [roadmap](#roadmap). Live: https://gnklv.github.io/tuktuk/
 
 ## Core idea
 
@@ -53,7 +53,7 @@ Conventions:
 
 ## Roadmap
 
-- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries ✅, deploy to Cloudflare Pages
+- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries ✅, deploy to GitHub Pages
 - [ ] **1. Today's tasks** — data model, "Today" screen, habits vs one-off tasks, day rollover (localStorage)
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
