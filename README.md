@@ -65,7 +65,7 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 ## Roadmap
 
 - [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
-- [ ] **1. Today's tasks** — data model ✅ (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage ✅, habits vs one-off tasks, day rollover
+- [ ] **1. Today's tasks** — data model ✅ (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage ✅, habits by weekday + task removal ✅, day rollover
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
 - [ ] **4. Gamification v1** — XP with early-finish multiplier, streak, day summary, levels

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
-import { toLocalDate, type DayOverview, type TaskId } from '@tuktuk/core'
+import { toLocalDate, type DayOverview, type NewTaskInput, type TaskId } from '@tuktuk/core'
 import { useClock, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
@@ -22,8 +22,13 @@ export const useTodayStore = defineStore('today', () => {
     overview.value = await useCases.getDayOverview(today())
   }
 
-  async function addTask(title: string) {
-    await useCases.addTask({ title, schedule: { kind: 'once', date: today() } })
+  async function addTask(input: NewTaskInput) {
+    await useCases.addTask(input, today())
+    await load()
+  }
+
+  async function archive(taskId: TaskId) {
+    await useCases.archiveTask(taskId, today())
     await load()
   }
 
@@ -32,5 +37,5 @@ export const useTodayStore = defineStore('today', () => {
     await load()
   }
 
-  return { overview, total, done, allDone, load, addTask, toggle }
+  return { overview, total, done, allDone, today, load, addTask, archive, toggle }
 })

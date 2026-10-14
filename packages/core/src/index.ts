@@ -41,6 +41,7 @@ export type { SettingsRepository } from './application/ports/settings-repository
 
 // Application use cases
 export { makeAddTask } from './application/use-cases/add-task'
+export { makeArchiveTask } from './application/use-cases/archive-task'
 export { makeToggleCompletion } from './application/use-cases/toggle-completion'
 export { makeGetDayOverview } from './application/use-cases/get-day-overview'
 export { makeGetSettings, makeUpdateSettings } from './application/use-cases/settings'

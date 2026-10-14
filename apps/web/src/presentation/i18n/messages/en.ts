@@ -11,7 +11,23 @@ export const en = {
   addTask: {
     label: 'New task',
     placeholder: 'What needs doing today?',
+    habitPlaceholder: 'What do you want to do regularly?',
     submit: 'Add',
+    kindLabel: 'Task type',
+    kind: {
+      once: 'Today',
+      habit: 'Habit',
+    },
+    weekdaysLabel: 'Repeat on',
+  },
+  schedule: {
+    everyDay: 'Every day',
+    weekdays: 'Weekdays',
+    weekends: 'Weekends',
+  },
+  task: {
+    remove: 'Remove task',
+    removeConfirm: 'Remove “{title}”? It disappears from today on; past days are kept.',
   },
   locale: {
     label: 'Language',

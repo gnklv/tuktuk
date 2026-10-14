@@ -9,6 +9,7 @@ import {
 import type { LocalDate } from '../../domain/local-date'
 import type { TaskId } from '../../domain/task'
 import { makeAddTask } from './add-task'
+import { makeArchiveTask } from './archive-task'
 import { makeGetDayOverview } from './get-day-overview'
 import { makeToggleCompletion } from './toggle-completion'
 import { makeGetSettings, makeUpdateSettings } from './settings'
@@ -33,7 +34,10 @@ describe('task use cases', () => {
   })
 
   it('adds a task and shows it in the day overview', async () => {
-    const task = await addTask({ title: 'Call mom', schedule: { kind: 'once', date: today } })
+    const task = await addTask(
+      { title: 'Call mom', schedule: { kind: 'once', date: today } },
+      today,
+    )
     expect(task.id).toBe('task-1')
 
     const day = await getDay(today)
@@ -42,14 +46,17 @@ describe('task use cases', () => {
   })
 
   it('does not save an invalid task', async () => {
-    await expect(addTask({ title: ' ', schedule: { kind: 'once', date: today } })).rejects.toThrow(
-      'task.titleEmpty',
-    )
+    await expect(
+      addTask({ title: ' ', schedule: { kind: 'once', date: today } }, today),
+    ).rejects.toThrow('task.titleEmpty')
     expect(taskRepo.tasks.size).toBe(0)
   })
 
   it('toggles completion on and off', async () => {
-    const task = await addTask({ title: 'Call mom', schedule: { kind: 'once', date: today } })
+    const task = await addTask(
+      { title: 'Call mom', schedule: { kind: 'once', date: today } },
+      today,
+    )
 
     clock.set('2026-10-14T15:00:00Z')
     expect(await toggle(task.id, today)).toEqual({ done: true })
@@ -59,8 +66,25 @@ describe('task use cases', () => {
     expect((await getDay(today)).doneCount).toBe(0)
   })
 
+  it('archives a habit from today on, keeping past days', async () => {
+    const habit = await addTask(
+      { title: 'Stretch', schedule: { kind: 'weekly', weekdays: [1, 2, 3, 4, 5, 6, 7] } },
+      '2026-10-10' as LocalDate,
+    )
+    await makeArchiveTask({ taskRepo })(habit.id, today)
+
+    expect((await getDay(today)).items).toEqual([])
+    expect((await getDay('2026-10-13' as LocalDate)).items).toHaveLength(1)
+    await expect(makeArchiveTask({ taskRepo })('nope' as TaskId, today)).rejects.toThrow(
+      'task.notFound',
+    )
+  })
+
   it('refuses to complete unknown or unscheduled tasks', async () => {
-    const task = await addTask({ title: 'Call mom', schedule: { kind: 'once', date: today } })
+    const task = await addTask(
+      { title: 'Call mom', schedule: { kind: 'once', date: today } },
+      today,
+    )
     await expect(toggle('nope' as TaskId, today)).rejects.toThrow('task.notFound')
     await expect(toggle(task.id, '2026-10-15' as LocalDate)).rejects.toThrow('task.notScheduled')
   })

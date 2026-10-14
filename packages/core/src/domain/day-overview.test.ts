@@ -7,7 +7,10 @@ const d = (s: string) => s as LocalDate
 const today = d('2026-10-14') // Wednesday
 
 const task = (id: string, schedule: TaskSchedule, createdAt: string) =>
-  createTask({ title: id, schedule }, { id: id as TaskId, now: new Date(createdAt) })
+  createTask(
+    { title: id, schedule },
+    { id: id as TaskId, now: new Date(createdAt), today: d('2026-10-01') },
+  )
 
 describe('buildDayOverview', () => {
   const habit = task('habit', { kind: 'weekly', weekdays: [3] }, '2026-10-01T10:00:00Z')

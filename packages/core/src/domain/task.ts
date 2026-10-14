@@ -19,7 +19,10 @@ export interface Task {
   /** Required tasks count towards the streak; optional ones only give XP. */
   readonly required: boolean
   readonly createdAt: Date
-  readonly archivedAt?: Date
+  /** First day the task exists. Days before it are not affected (e.g. a new habit doesn't break past streaks). */
+  readonly activeFrom: LocalDate
+  /** Day the task was removed. It no longer appears from this day on, but stays in history. */
+  readonly archivedOn?: LocalDate
 }
 
 export interface NewTaskInput {
@@ -28,13 +31,17 @@ export interface NewTaskInput {
   required?: boolean
 }
 
-export function createTask(input: NewTaskInput, deps: { id: TaskId; now: Date }): Task {
+export function createTask(
+  input: NewTaskInput,
+  deps: { id: TaskId; now: Date; today: LocalDate },
+): Task {
   return {
     id: deps.id,
     title: normalizeTitle(input.title),
     schedule: normalizeSchedule(input.schedule),
     required: input.required ?? true,
     createdAt: deps.now,
+    activeFrom: deps.today,
   }
 }
 
@@ -42,12 +49,14 @@ export function renameTask(task: Task, title: string): Task {
   return { ...task, title: normalizeTitle(title) }
 }
 
-export function archiveTask(task: Task, now: Date): Task {
-  return task.archivedAt ? task : { ...task, archivedAt: now }
+export function archiveTask(task: Task, today: LocalDate): Task {
+  return task.archivedOn ? task : { ...task, archivedOn: today }
 }
 
 export function isScheduledOn(task: Task, date: LocalDate): boolean {
-  if (task.archivedAt) return false
+  // ISO dates compare correctly as strings.
+  if (date < task.activeFrom) return false
+  if (task.archivedOn && date >= task.archivedOn) return false
   switch (task.schedule.kind) {
     case 'once':
       return task.schedule.date === date

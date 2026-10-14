@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import {
   makeAddTask,
+  makeArchiveTask,
   makeGetDayOverview,
   makeGetSettings,
   makeToggleCompletion,
@@ -29,6 +30,7 @@ const settingsRepo = new LocalStorageSettingsRepository(localStorage)
 const updateSettings = makeUpdateSettings({ settingsRepo })
 const useCases: AppUseCases = {
   addTask: makeAddTask({ taskRepo, ids: cryptoIdGenerator, clock }),
+  archiveTask: makeArchiveTask({ taskRepo }),
   toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
   getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
   updateSettings: (patch) => updateSettings(patch, env),

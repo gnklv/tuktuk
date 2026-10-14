@@ -3,6 +3,7 @@ import type {
   Clock,
   Settings,
   makeAddTask,
+  makeArchiveTask,
   makeGetDayOverview,
   makeToggleCompletion,
 } from '@tuktuk/core'
@@ -10,6 +11,7 @@ import type {
 /** Use cases with all their dependencies already bound in the composition root. */
 export interface AppUseCases {
   addTask: ReturnType<typeof makeAddTask>
+  archiveTask: ReturnType<typeof makeArchiveTask>
   toggleCompletion: ReturnType<typeof makeToggleCompletion>
   getDayOverview: ReturnType<typeof makeGetDayOverview>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>

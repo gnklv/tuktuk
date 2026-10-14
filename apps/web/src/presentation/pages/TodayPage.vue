@@ -34,6 +34,7 @@ onMounted(today.load)
         :key="item.task.id"
         :item="item"
         @toggle="today.toggle(item.task.id)"
+        @remove="today.archive(item.task.id)"
       />
     </ul>
     <p v-else-if="today.overview" class="today__empty muted">{{ t('today.empty') }}</p>

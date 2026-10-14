@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watchEffect } from 'vue'
-import { UiButton, UiCard } from '../ui'
+import {
+  UiButton,
+  UiCard,
+  UiCheckbox,
+  UiChipGroup,
+  UiIconButton,
+  UiSegmentedControl,
+  UiTextField,
+} from '../ui'
 
 type Theme = 'system' | 'light' | 'dark'
 
@@ -34,6 +42,11 @@ const swatches = [
   'focus',
 ]
 const fontSizes = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs']
+
+const checked = ref(true)
+const text = ref('')
+const segment = ref<'a' | 'b'>('a')
+const chips = ref<number[]>([1, 3])
 </script>
 
 <template>
@@ -87,6 +100,33 @@ const fontSizes = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs']
         <UiButton disabled>Disabled</UiButton>
       </div>
       <UiButton size="lg" block>Сделал! / Done!</UiButton>
+    </section>
+
+    <section>
+      <h2>Form controls</h2>
+      <UiCheckbox v-model="checked">Checkbox — {{ checked ? 'done' : 'pending' }}</UiCheckbox>
+      <UiTextField v-model="text" label="Text field" placeholder="Placeholder" />
+      <UiTextField v-model="text" label="With error" error="Something is wrong" />
+      <UiSegmentedControl
+        v-model="segment"
+        label="Segmented"
+        :options="[
+          { value: 'a', label: 'Today' },
+          { value: 'b', label: 'Habit' },
+        ]"
+      />
+      <UiChipGroup
+        v-model="chips"
+        label="Chips"
+        :options="[1, 2, 3, 4, 5].map((n) => ({ value: n, label: `#${n}` }))"
+      />
+      <div class="row">
+        <UiIconButton label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+          </svg>
+        </UiIconButton>
+      </div>
     </section>
 
     <section>

@@ -40,7 +40,7 @@ beforeEach(() => {
 describe('LocalStorageTaskRepository', () => {
   const task = createTask(
     { title: 'Call mom', schedule: { kind: 'once', date: today } },
-    { id: 't1' as TaskId, now: new Date('2026-10-14T09:00:00Z') },
+    { id: 't1' as TaskId, now: new Date('2026-10-14T09:00:00Z'), today },
   )
 
   it('round-trips tasks including dates', async () => {
@@ -54,6 +54,23 @@ describe('LocalStorageTaskRepository', () => {
     await repo.save(task)
     await repo.save({ ...task, title: 'Call dad' })
     expect((await repo.getAll()).map((t) => t.title)).toEqual(['Call dad'])
+  })
+
+  it('reads tasks saved before activeFrom existed', async () => {
+    storage.setItem(
+      STORAGE_KEYS.tasks,
+      JSON.stringify([
+        {
+          id: 'old',
+          title: 'Old task',
+          schedule: { kind: 'once', date: today },
+          required: true,
+          createdAt: '2026-10-13T21:30:00.000Z',
+        },
+      ]),
+    )
+    const [task] = await new LocalStorageTaskRepository(storage).getAll()
+    expect(task?.activeFrom).toBe('2026-10-13')
   })
 
   it('survives corrupted storage', async () => {

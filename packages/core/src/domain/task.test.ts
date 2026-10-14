@@ -11,8 +11,12 @@ import {
 import type { LocalDate } from './local-date'
 import { DomainError } from './shared/domain-error'
 
-const deps = { id: 'task-1' as TaskId, now: new Date('2026-10-14T09:00:00Z') }
 const d = (s: string) => s as LocalDate
+const deps = {
+  id: 'task-1' as TaskId,
+  now: new Date('2026-10-14T09:00:00Z'),
+  today: d('2026-10-12'),
+}
 const make = (input: Partial<NewTaskInput> = {}) =>
   createTask(
     { title: 'Call mom', schedule: { kind: 'once', date: d('2026-10-14') }, ...input },
@@ -32,6 +36,7 @@ describe('createTask', () => {
       schedule: { kind: 'once', date: '2026-10-14' },
       required: true,
       createdAt: deps.now,
+      activeFrom: '2026-10-12',
     })
   })
 
@@ -84,9 +89,15 @@ describe('isScheduledOn', () => {
     expect(isScheduledOn(task, d('2026-10-14'))).toBe(true) // Wed
   })
 
-  it('never matches an archived task', () => {
-    const task = archiveTask(make(), new Date())
-    expect(isScheduledOn(task, d('2026-10-14'))).toBe(false)
+  it('matches only within [activeFrom, archivedOn)', () => {
+    // Every day, active since Mon 2026-10-12.
+    const habit = make({ schedule: { kind: 'weekly', weekdays: [1, 2, 3, 4, 5, 6, 7] } })
+    expect(isScheduledOn(habit, d('2026-10-11'))).toBe(false) // before it existed
+
+    const archived = archiveTask(habit, d('2026-10-14'))
+    expect(isScheduledOn(archived, d('2026-10-13'))).toBe(true) // history is kept
+    expect(isScheduledOn(archived, d('2026-10-14'))).toBe(false) // gone from the archive day
+    expect(isScheduledOn(archived, d('2026-10-20'))).toBe(false)
   })
 })
 
@@ -97,8 +108,7 @@ describe('renameTask / archiveTask', () => {
   })
 
   it('keeps the first archive date', () => {
-    const first = new Date('2026-10-14T10:00:00Z')
-    const archived = archiveTask(make(), first)
-    expect(archiveTask(archived, new Date('2026-10-20T10:00:00Z')).archivedAt).toBe(first)
+    const archived = archiveTask(make(), d('2026-10-14'))
+    expect(archiveTask(archived, d('2026-10-20')).archivedOn).toBe('2026-10-14')
   })
 })

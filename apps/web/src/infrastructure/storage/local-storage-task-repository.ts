@@ -1,4 +1,4 @@
-import type { Task, TaskId, TaskRepository, TaskSchedule } from '@tuktuk/core'
+import type { LocalDate, Task, TaskId, TaskRepository, TaskSchedule } from '@tuktuk/core'
 import { STORAGE_KEYS, parseList, readJson, writeJson } from './json-storage'
 
 interface TaskDto {
@@ -7,7 +7,8 @@ interface TaskDto {
   schedule: TaskSchedule
   required: boolean
   createdAt: string
-  archivedAt?: string
+  activeFrom?: string // missing in data saved before habits existed
+  archivedOn?: string
 }
 
 const toDto = (task: Task): TaskDto => ({
@@ -16,7 +17,8 @@ const toDto = (task: Task): TaskDto => ({
   schedule: task.schedule,
   required: task.required,
   createdAt: task.createdAt.toISOString(),
-  ...(task.archivedAt && { archivedAt: task.archivedAt.toISOString() }),
+  activeFrom: task.activeFrom,
+  ...(task.archivedOn && { archivedOn: task.archivedOn }),
 })
 
 const fromDto = (value: unknown): Task => {
@@ -30,7 +32,9 @@ const fromDto = (value: unknown): Task => {
     schedule: dto.schedule,
     required: dto.required !== false,
     createdAt: new Date(dto.createdAt),
-    ...(dto.archivedAt && { archivedAt: new Date(dto.archivedAt) }),
+    // Old data: the UTC creation date is a close enough approximation.
+    activeFrom: (dto.activeFrom ?? dto.createdAt.slice(0, 10)) as LocalDate,
+    ...(dto.archivedOn && { archivedOn: dto.archivedOn as LocalDate }),
   }
 }
 
