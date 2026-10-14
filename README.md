@@ -51,9 +51,20 @@ Conventions:
 - No abstraction until there's a second implementation or a test needs it.
 - Layer boundaries are enforced by `no-restricted-imports` in `eslint.config.js`.
 
+## Design system
+
+Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know nothing about tasks. Showcase: `/kit`.
+
+- **Pressure-driven color.** A single CSS variable `--pressure` (0…1) shifts the accent hue from calm green to alarm red; the whole UI "heats up" towards the deadline without any component logic.
+- **Tokens in two layers:** primitives (spacing on a 4px grid, radii, type scale, motion) and semantic colors (`--color-bg`, `--color-accent`, …) in `oklch`.
+- **Light and dark themes** via `light-dark()`, following the system; `data-theme` on `<html>` forces one.
+- **Playful, chunky look:** Nunito (self-hosted, Cyrillic + Latin), bold uppercase buttons with a "3D" bottom edge, 48px minimum tap targets, mobile-first.
+- **Motion** respects `prefers-reduced-motion`.
+- Styling: CSS custom properties + `<style scoped>`, no CSS framework.
+
 ## Roadmap
 
-- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries ✅, deploy to GitHub Pages
+- [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
 - [ ] **1. Today's tasks** — data model, "Today" screen, habits vs one-off tasks, day rollover (localStorage)
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level

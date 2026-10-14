@@ -10,10 +10,12 @@
     "typecheck": "vue-tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@fontsource-variable/nunito": "^5.3.0",
     "@tuktuk/core": "*",
     "pinia": "^4.1.0",
     "vue": "^3.5.44",
-    "vue-i18n": "^11.4.14"
+    "vue-i18n": "^11.4.14",
+    "vue-router": "^5.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.10",

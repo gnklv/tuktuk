@@ -1,0 +1,112 @@
+/*
+ * Design tokens.
+ * Layer 1 — primitives: raw scales (spacing, radii, type, motion).
+ * Layer 2 — semantic: what a value is for (bg, surface, text, accent…).
+ * Themes override only semantic tokens, via `light-dark()`.
+ */
+
+/* Registered so that changes to --pressure can be transitioned smoothly. */
+@property --pressure {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* ---------- Pressure: 0 = calm morning, 1 = deadline is near ---------- */
+  --pressure: 0;
+  /* Hue goes green (150) → yellow → red (25) as pressure grows. */
+  --accent-hue: calc(150 - var(--pressure) * 125);
+  /* Yellows look muddy at the same lightness, so lift lightness mid-scale: p·(1−p) peaks at 0.5. */
+  --accent-lift: calc(var(--pressure) * (1 - var(--pressure)) * 28%);
+  transition: --pressure var(--duration-slow) var(--ease-out);
+
+  /* ---------- Primitives ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  --font-family: 'Nunito Variable', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-weight-regular: 600;
+  --font-weight-bold: 800;
+  --font-weight-black: 900;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 600ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --tap-min: 48px;
+  /* "3D" depth of buttons and cards — the bottom edge. */
+  --depth: 4px;
+  --border-width: 2px;
+
+  /* ---------- Semantic colors ---------- */
+  --color-bg: light-dark(oklch(98.5% 0.008 var(--accent-hue)), oklch(19% 0.015 var(--accent-hue)));
+  --color-surface: light-dark(oklch(100% 0 0), oklch(25% 0.018 var(--accent-hue)));
+  --color-border: light-dark(oklch(91% 0.01 var(--accent-hue)), oklch(34% 0.02 var(--accent-hue)));
+  --color-text: light-dark(oklch(26% 0.02 260), oklch(96% 0.01 260));
+  --color-text-muted: light-dark(oklch(52% 0.02 260), oklch(72% 0.02 260));
+
+  /* Accent follows pressure. `strong` is the darker bottom edge for depth. */
+  --color-accent: light-dark(
+    oklch(calc(64% + var(--accent-lift)) 0.19 var(--accent-hue)),
+    oklch(calc(68% + var(--accent-lift)) 0.18 var(--accent-hue))
+  );
+  --color-accent-strong: light-dark(
+    oklch(calc(52% + var(--accent-lift)) 0.17 var(--accent-hue)),
+    oklch(calc(54% + var(--accent-lift)) 0.16 var(--accent-hue))
+  );
+  --color-accent-soft: light-dark(
+    oklch(94% 0.05 var(--accent-hue)),
+    oklch(32% 0.06 var(--accent-hue))
+  );
+  --color-on-accent: oklch(100% 0 0);
+
+  /* Fixed meanings — do not follow pressure. */
+  --color-success: oklch(70% 0.2 145);
+  --color-success-strong: oklch(56% 0.18 145);
+  --color-danger: oklch(63% 0.22 25);
+  --color-danger-strong: oklch(50% 0.2 25);
+  --color-streak: oklch(75% 0.18 60);
+
+  --color-focus: light-dark(oklch(62% 0.17 250), oklch(75% 0.15 250));
+}
+
+/* Manual theme override (system preference is the default). */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
