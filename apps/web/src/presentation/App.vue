@@ -1,14 +1,22 @@
 <script setup lang="ts">
+import { watchEffect } from 'vue'
+import { useAppI18n } from './i18n'
 import { useClock } from './di'
+import LocaleSwitcher from './components/LocaleSwitcher.vue'
 
-const today = useClock()
-  .now()
-  .toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })
+const { t, d, locale } = useAppI18n()
+const now = useClock().now()
+
+watchEffect(() => {
+  document.documentElement.lang = locale.value
+  document.title = t('app.name')
+})
 </script>
 
 <template>
   <main>
-    <h1>Тук-тук 🐦</h1>
-    <p>Сегодня {{ today }}</p>
+    <h1>{{ t('app.name') }} 🐦</h1>
+    <p>{{ t('today.date', { date: d(now, 'dayLong') }) }}</p>
+    <LocaleSwitcher />
   </main>
 </template>
