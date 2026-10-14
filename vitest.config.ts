@@ -11,6 +11,13 @@ export default defineConfig({
           environment: 'node',
         },
       },
+      {
+        test: {
+          name: 'web',
+          root: 'apps/web',
+          environment: 'node',
+        },
+      },
     ],
   },
 })

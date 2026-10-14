@@ -1,9 +1,16 @@
-/**
- * A violated business rule. `code` is stable and maps to a UI message
- * (e.g. `task.titleEmpty` → `errors.task.titleEmpty`).
- */
+/** Every business rule violation has a stable code; the UI maps each one to a message. */
+export type DomainErrorCode =
+  | 'localDate.invalid'
+  | 'timeOfDay.invalid'
+  | 'task.titleEmpty'
+  | 'task.titleTooLong'
+  | 'task.noWeekdays'
+  | 'task.invalidWeekday'
+  | 'task.notFound'
+  | 'task.notScheduled'
+
 export class DomainError extends Error {
-  constructor(readonly code: string) {
+  constructor(readonly code: DomainErrorCode) {
     super(code)
     this.name = 'DomainError'
   }

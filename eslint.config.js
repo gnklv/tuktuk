@@ -51,6 +51,8 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
+      // Type-based optional props are `undefined` by default; forcing defaults adds noise.
+      'vue/require-default-prop': 'off',
     },
   },
   ...boundaries,
