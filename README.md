@@ -49,10 +49,11 @@ Conventions:
 - Domain is fully unit-tested; use cases are tested with in-memory fakes of the ports.
 - Never call `new Date()` inside core — use the injected `Clock`.
 - No abstraction until there's a second implementation or a test needs it.
+- Layer boundaries are enforced by `no-restricted-imports` in `eslint.config.js`.
 
 ## Roadmap
 
-- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries, deploy to Cloudflare Pages
+- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries ✅, deploy to Cloudflare Pages
 - [ ] **1. Today's tasks** — data model, "Today" screen, habits vs one-off tasks, day rollover (localStorage)
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level

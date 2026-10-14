@@ -4,6 +4,35 @@ import pluginVue from 'eslint-plugin-vue'
 import prettier from 'eslint-config-prettier'
 import globals from 'globals'
 
+// Clean Architecture boundaries: dependencies point inwards only.
+const restrict = (...patterns) => ({
+  'no-restricted-imports': ['error', { patterns }],
+})
+
+const frameworkFree = {
+  group: ['vue', 'vue/*', 'pinia', '@vue/*', 'vue-i18n'],
+  message: 'Core must stay framework-agnostic.',
+}
+const notApplication = {
+  group: ['**/application/**', '**/application'],
+  message: 'Domain must not depend on the application layer.',
+}
+const notInfrastructure = {
+  group: ['**/infrastructure/**', '**/infrastructure'],
+  message: 'Presentation must not import infrastructure. Inject it from main.ts instead.',
+}
+const notPresentation = {
+  group: ['**/presentation/**', '**/presentation'],
+  message: 'Infrastructure must not depend on presentation.',
+}
+
+const boundaries = [
+  { files: ['packages/core/src/domain/**'], rules: restrict(frameworkFree, notApplication) },
+  { files: ['packages/core/src/application/**'], rules: restrict(frameworkFree) },
+  { files: ['apps/web/src/presentation/**'], rules: restrict(notInfrastructure) },
+  { files: ['apps/web/src/infrastructure/**'], rules: restrict(notPresentation) },
+]
+
 export default tseslint.config(
   { ignores: ['**/dist/**', '**/coverage/**'] },
   js.configs.recommended,
@@ -24,5 +53,6 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'error',
     },
   },
+  ...boundaries,
   prettier,
 )
