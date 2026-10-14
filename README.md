@@ -39,7 +39,7 @@ tuktuk/
 ├─ packages/
 │  └─ core/        @tuktuk/core — domain + application layers
 ├─ apps/
-│  ├─ web/         Vue app — infrastructure + presentation (planned)
+│  ├─ web/         Vue app — infrastructure + presentation
 │  └─ worker/      Cloudflare Worker for push reminders (planned)
 ```
 
@@ -52,7 +52,7 @@ Conventions:
 
 ## Roadmap
 
-- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web`, lint rule for layer boundaries, deploy to Cloudflare Pages
+- [ ] **0. Scaffold** — monorepo ✅, Vue app in `apps/web` ✅, lint rule for layer boundaries, deploy to Cloudflare Pages
 - [ ] **1. Today's tasks** — data model, "Today" screen, habits vs one-off tasks, day rollover (localStorage)
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
@@ -73,11 +73,13 @@ npm install
 
 ## Scripts
 
-| Command                | Description                      |
-| ---------------------- | -------------------------------- |
-| `npm test`             | Run all tests once               |
-| `npm run test:watch`   | Run tests in watch mode          |
-| `npm run lint`         | Lint the whole repo              |
-| `npm run typecheck`    | Type-check every workspace       |
-| `npm run format`       | Format with Prettier             |
-| `npm run format:check` | Check formatting without writing |
+| Command                | Description                                |
+| ---------------------- | ------------------------------------------ |
+| `npm run dev`          | Start the web app at http://localhost:5180 |
+| `npm run build`        | Type-check and build the web app           |
+| `npm test`             | Run all tests once                         |
+| `npm run test:watch`   | Run tests in watch mode                    |
+| `npm run lint`         | Lint the whole repo                        |
+| `npm run typecheck`    | Type-check every workspace                 |
+| `npm run format`       | Format with Prettier                       |
+| `npm run format:check` | Check formatting without writing           |
