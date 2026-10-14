@@ -1,24 +1,27 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useAppI18n } from '../i18n'
-import { useClock } from '../di'
+import { localDateToDate } from '../i18n/dates'
 import { useTodayStore } from '../stores/today'
+import { useDayRollover } from '../composables/use-day-rollover'
 import LocaleSwitcher from '../components/LocaleSwitcher.vue'
 import TaskItem from '../features/today/TaskItem.vue'
 import AddTaskForm from '../features/today/AddTaskForm.vue'
 
 const { t, d } = useAppI18n()
-const now = useClock().now()
 const today = useTodayStore()
 
 onMounted(today.load)
+useDayRollover(today.syncDay)
 </script>
 
 <template>
   <div class="today">
     <header class="today__header">
       <h1>{{ t('app.name') }} 🐦</h1>
-      <p class="muted">{{ t('today.date', { date: d(now, 'dayLong') }) }}</p>
+      <p class="muted">
+        {{ t('today.date', { date: d(localDateToDate(today.date), 'dayLong') }) }}
+      </p>
       <p v-if="today.total > 0" class="today__progress">
         {{
           today.allDone

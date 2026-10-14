@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
-import { toLocalDate, type DayOverview, type NewTaskInput, type TaskId } from '@tuktuk/core'
+import {
+  toLocalDate,
+  type DayOverview,
+  type LocalDate,
+  type NewTaskInput,
+  type TaskId,
+} from '@tuktuk/core'
 import { useClock, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
@@ -10,16 +16,26 @@ export const useTodayStore = defineStore('today', () => {
   const clock = useClock()
   const settingsStore = useSettingsStore()
 
-  const overview = shallowRef<DayOverview | null>(null)
+  const today = (): LocalDate => toLocalDate(clock.now(), settingsStore.settings.timeZone)
 
-  const today = () => toLocalDate(clock.now(), settingsStore.settings.timeZone)
+  /** The day currently shown. Changes only via `load()`, so it never drifts from `overview`. */
+  const date = shallowRef<LocalDate>(today())
+  const overview = shallowRef<DayOverview | null>(null)
 
   const total = computed(() => overview.value?.items.length ?? 0)
   const done = computed(() => overview.value?.doneCount ?? 0)
   const allDone = computed(() => total.value > 0 && done.value === total.value)
 
   async function load() {
-    overview.value = await useCases.getDayOverview(today())
+    const day = today()
+    const result = await useCases.getDayOverview(day)
+    date.value = day
+    overview.value = result
+  }
+
+  /** Reloads only if the calendar day has changed since the last load. */
+  async function syncDay() {
+    if (today() !== date.value) await load()
   }
 
   async function addTask(input: NewTaskInput) {
@@ -33,9 +49,12 @@ export const useTodayStore = defineStore('today', () => {
   }
 
   async function toggle(taskId: TaskId) {
-    await useCases.toggleCompletion(taskId, overview.value?.date ?? today())
+    // The list is from a day that is already over: show the new day instead of
+    // silently ticking off yesterday's task.
+    if (today() !== date.value) return load()
+    await useCases.toggleCompletion(taskId, date.value)
     await load()
   }
 
-  return { overview, total, done, allDone, today, load, addTask, archive, toggle }
+  return { date, overview, total, done, allDone, today, load, syncDay, addTask, archive, toggle }
 })

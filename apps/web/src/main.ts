@@ -15,13 +15,14 @@ import { ClockKey, InitialSettingsKey, UseCasesKey, type AppUseCases } from './p
 import { createAppI18n } from './presentation/i18n'
 import { createAppRouter } from './presentation/router'
 import { systemClock } from './infrastructure/system-clock'
+import { createDevClock } from './infrastructure/dev-clock'
 import { cryptoIdGenerator } from './infrastructure/crypto-id-generator'
 import { browserEnvironment } from './infrastructure/browser-environment'
 import { LocalStorageTaskRepository } from './infrastructure/storage/local-storage-task-repository'
 import { LocalStorageCompletionRepository } from './infrastructure/storage/local-storage-completion-repository'
 import { LocalStorageSettingsRepository } from './infrastructure/storage/local-storage-settings-repository'
 
-const clock = systemClock
+const clock = import.meta.env.DEV ? createDevClock() : systemClock
 const env = browserEnvironment()
 const taskRepo = new LocalStorageTaskRepository(localStorage)
 const completionRepo = new LocalStorageCompletionRepository(localStorage)

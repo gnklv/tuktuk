@@ -65,7 +65,7 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 ## Roadmap
 
 - [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
-- [ ] **1. Today's tasks** — data model ✅ (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage ✅, habits by weekday + task removal ✅, day rollover
+- [x] **1. Today's tasks** — data model (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage, habits by weekday, task removal, day rollover
 - [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
 - [ ] **4. Gamification v1** — XP with early-finish multiplier, streak, day summary, levels
@@ -81,6 +81,17 @@ Requires Node.js 24+ (see `.nvmrc`).
 
 ```bash
 npm install
+```
+
+### Dev clock
+
+In development the app uses a shiftable clock, handy for testing day rollover and reminders.
+In the browser console:
+
+```js
+tuktukDev.setNow('2026-10-14T23:59:50') // jump to a local time (reloads the page)
+tuktukDev.shift(60 * 60_000) // move forward by an hour
+tuktukDev.reset() // back to real time
 ```
 
 ## Scripts

@@ -8,6 +8,7 @@ export type { Brand } from './domain/shared/brand'
 export { LOCALES, DEFAULT_LOCALE, isLocale, resolveLocale } from './domain/locale'
 export type { Locale } from './domain/locale'
 export { parseLocalDate, toLocalDate, weekdayOf, addDays } from './domain/local-date'
+export { msUntilNextLocalDay } from './domain/day-boundary'
 export type { LocalDate, Weekday } from './domain/local-date'
 export {
   MINUTES_IN_DAY,
