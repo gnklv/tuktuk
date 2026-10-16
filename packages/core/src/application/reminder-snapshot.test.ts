@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { parseReminderSnapshot, dayCountsOn, SNAPSHOT_DAYS } from './reminder-snapshot'
 import { makeGetReminderSnapshot } from './use-cases/get-reminder-snapshot'
+import { makeGetPendingTitles } from './use-cases/get-pending-titles'
 import { makeAddTask } from './use-cases/add-task'
 import { makeToggleCompletion } from './use-cases/toggle-completion'
 import { createDefaultSettings } from '../domain/settings'
@@ -48,6 +49,24 @@ describe('getReminderSnapshot', () => {
     const json = JSON.stringify(snapshot)
     expect(json).not.toContain('Secret')
     expect(json).not.toContain('theme')
+  })
+})
+
+describe('getPendingTitles', () => {
+  it('lists pending titles per day for the same days as the snapshot', async () => {
+    const taskRepo = new InMemoryTaskRepository()
+    const completionRepo = new InMemoryCompletionRepository()
+    const clock = fakeClock('2026-10-14T09:00:00Z')
+    const add = makeAddTask({ taskRepo, ids: sequentialIds(), clock })
+    const call = await add({ title: 'Call mom', schedule: { kind: 'once', date: today } }, today)
+    await add({ title: 'Stretch', schedule: { kind: 'weekly', weekdays: [3, 4] } }, today)
+    await makeToggleCompletion({ taskRepo, completionRepo, clock })(call.id, today)
+
+    const titles = await makeGetPendingTitles({ taskRepo, completionRepo })(today)
+    expect(Object.keys(titles)).toHaveLength(SNAPSHOT_DAYS)
+    expect(titles[today]).toEqual(['Stretch'])
+    expect(titles['2026-10-15' as LocalDate]).toEqual(['Stretch'])
+    expect(titles['2026-10-16' as LocalDate]).toEqual([])
   })
 })
 

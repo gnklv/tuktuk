@@ -2,12 +2,14 @@ import { inject, type InjectionKey } from 'vue'
 import type {
   Clock,
   Locale,
+  PendingTitles,
   ReminderSnapshot,
   NudgeMessage,
   Settings,
   makeAddTask,
   makeCheckNudge,
   makeGetReminderSnapshot,
+  makeGetPendingTitles,
   makeArchiveTask,
   makeGetDayOverview,
   makeToggleCompletion,
@@ -22,6 +24,7 @@ export interface AppUseCases {
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   checkNudge: ReturnType<typeof makeCheckNudge>
   getReminderSnapshot: ReturnType<typeof makeGetReminderSnapshot>
+  getPendingTitles: ReturnType<typeof makeGetPendingTitles>
 }
 
 export type NotificationPermissionState =
@@ -53,6 +56,8 @@ export interface PushAccess {
   sendTest(locale: Locale, delaySeconds: number): Promise<void>
   /** Tells the server what it needs to schedule reminders: settings and counts, no titles. */
   syncSnapshot(snapshot: ReminderSnapshot): Promise<void>
+  /** Keeps pending titles on the device, where push texts are composed. Never sent anywhere. */
+  saveLocalTitles(titles: PendingTitles): Promise<void>
 }
 
 export const PushKey: InjectionKey<PushAccess> = Symbol('Push')

@@ -68,4 +68,6 @@ export { makeGetSettings, makeUpdateSettings } from './application/use-cases/set
 export type { SettingsEnvironment } from './application/use-cases/settings'
 export { makeCheckNudge } from './application/use-cases/check-nudge'
 export { makeGetReminderSnapshot } from './application/use-cases/get-reminder-snapshot'
+export { makeGetPendingTitles } from './application/use-cases/get-pending-titles'
+export type { PendingTitles } from './application/use-cases/get-pending-titles'
 export type { CheckNudgeInput, CheckNudgeResult } from './application/use-cases/check-nudge'

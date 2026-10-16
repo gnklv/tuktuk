@@ -1,4 +1,5 @@
-import type { Locale, ReminderSnapshot } from '@tuktuk/core'
+import type { Locale, PendingTitles, ReminderSnapshot } from '@tuktuk/core'
+import { reminderTitles } from '../reminder-titles'
 import { ApiError, api } from './api-client'
 
 export type PushStatus = 'unsupported' | 'off' | 'on'
@@ -58,6 +59,10 @@ export class WebPushService {
       body: snapshot,
       auth: this.auth(credentials),
     })
+  }
+
+  saveLocalTitles(titles: PendingTitles): Promise<void> {
+    return reminderTitles.save(titles)
   }
 
   private async subscribe(registration: ServiceWorkerRegistration) {

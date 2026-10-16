@@ -7,8 +7,15 @@ import {
 } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { clientsClaim } from 'workbox-core'
-import { DEFAULT_LOCALE, parsePushPayload } from '@tuktuk/core'
-import { messages } from '@tuktuk/i18n'
+import {
+  DEFAULT_LOCALE,
+  composeNudge,
+  nudgeMood,
+  parsePushPayload,
+  type PushPayload,
+} from '@tuktuk/core'
+import { messages, nudgeCopy } from '@tuktuk/i18n'
+import { reminderTitles } from '../infrastructure/reminder-titles'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -36,24 +43,47 @@ self.addEventListener('push', (event) => {
   } catch {
     // not JSON — falls through to the generic notification
   }
-  const payload = parsePushPayload(data)
-  const dict = messages[payload?.locale ?? DEFAULT_LOCALE]
-
-  const { title, body } =
-    payload?.type === 'test'
-      ? { title: dict.reminders.push.testTitle, body: dict.reminders.push.testBody }
-      : { title: dict.app.name, body: '' }
-
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: asset('pwa-192x192.png'),
-      badge: asset('pwa-64x64.png'),
-      tag: 'tuktuk-nudge',
-      renotify: true,
-    } as NotificationOptions),
+    compose(parsePushPayload(data)).then(({ title, body }) =>
+      self.registration.showNotification(title, {
+        body,
+        icon: asset('pwa-192x192.png'),
+        badge: asset('pwa-64x64.png'),
+        tag: 'tuktuk-nudge',
+        renotify: true,
+      } as NotificationOptions),
+    ),
   )
 })
+
+async function compose(payload: PushPayload | null): Promise<{ title: string; body: string }> {
+  const dict = messages[payload?.locale ?? DEFAULT_LOCALE]
+  if (!payload) return { title: dict.app.name, body: '' }
+  if (payload.type === 'test') {
+    return { title: dict.reminders.push.testTitle, body: dict.reminders.push.testBody }
+  }
+
+  // A reminder: the same wording rules as in the app, with titles that never left the device.
+  try {
+    const pendingTitles = await reminderTitles.forDate(payload.date)
+    if (pendingTitles.length > 0) {
+      const message = composeNudge(nudgeCopy, {
+        locale: payload.locale,
+        pressure: payload.pressure,
+        pendingTitles,
+        previousId: await reminderTitles.lastMessageId(),
+        random: Math.random,
+      })
+      await reminderTitles.setLastMessageId(message.id)
+      return message
+    }
+  } catch (error) {
+    console.warn('[sw] could not read local titles', error)
+  }
+  // No local titles (storage was cleared): the mascot's line for this mood.
+  const mood = nudgeMood(payload.pressure)
+  return { title: nudgeCopy.title(payload.locale, mood), body: dict.mascot[mood] }
+}
 
 // Tapping a reminder opens the app (or focuses it if it's already open).
 self.addEventListener('notificationclick', (event) => {

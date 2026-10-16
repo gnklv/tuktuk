@@ -8,7 +8,8 @@ export class WebPushSender implements PushSender {
   async send(...[subscription, payload]: Parameters<PushSender['send']>) {
     const request = await buildPushPayload(
       // Reminders are useless after a while: don't deliver a stale one hours later.
-      { data: payload, options: { ttl: 15 * 60, urgency: 'high' } },
+      // Serialized here: the library sends strings as-is.
+      { data: JSON.stringify(payload), options: { ttl: 15 * 60, urgency: 'high' } },
       { ...subscription, expirationTime: null },
       this.vapid,
     )

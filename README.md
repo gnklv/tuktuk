@@ -76,7 +76,7 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 - 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
 - [ ] **4. Streak** — a day counts when all required tasks are done, day summary
 - [x] **5. PWA** — manifest, icons, offline via Service Worker, notifications through the Service Worker, iOS "Add to Home Screen" onboarding, safe areas
-- [ ] **6. Push server** — Cloudflare Worker + D1 ✅, device registration and push subscription ✅, snapshot sync ✅, cron, "Done" action
+- [ ] **6. Push server** — Cloudflare Worker + D1 ✅, device registration and push subscription ✅, snapshot sync ✅, cron reminders ✅, "Done" action
 - 🏁 **MVP** — reminders reach the phone while the app is closed, streak keeps you coming back
 - [ ] **7. XP & levels** — XP with early-finish multiplier, levels
 - [ ] **8. Telegram bot** — second reminder channel: account linking, inline "Done" / "Later" buttons

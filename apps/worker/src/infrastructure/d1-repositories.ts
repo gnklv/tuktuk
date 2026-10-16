@@ -1,7 +1,9 @@
-import { parseReminderSnapshot, type ReminderSnapshot } from '@tuktuk/core'
+import { parseReminderSnapshot, type LocalDate, type ReminderSnapshot } from '@tuktuk/core'
 import type {
   Device,
   DeviceRepository,
+  NudgeTarget,
+  NudgeTargetRepository,
   PushSubscriptionData,
   SnapshotRepository,
   SubscriptionRepository,
@@ -78,5 +80,54 @@ export class D1SnapshotRepository implements SnapshotRepository {
       .first<{ data: string }>()
     // Re-validated on read: stored data may predate a format change.
     return row ? parseReminderSnapshot(JSON.parse(row.data)) : null
+  }
+}
+
+export class D1NudgeTargetRepository implements NudgeTargetRepository {
+  constructor(private readonly db: D1Database) {}
+
+  async listActive(): Promise<NudgeTarget[]> {
+    const { results } = await this.db
+      .prepare(
+        `SELECT s.device_id, s.endpoint, s.p256dh, s.auth, sn.data, l.date, l.sent_at
+         FROM push_subscriptions s
+         JOIN snapshots sn ON sn.device_id = s.device_id
+         LEFT JOIN nudge_log l ON l.device_id = s.device_id`,
+      )
+      .all<{
+        device_id: string
+        endpoint: string
+        p256dh: string
+        auth: string
+        data: string
+        date: string | null
+        sent_at: string | null
+      }>()
+
+    return results.flatMap((row) => {
+      const snapshot = parseReminderSnapshot(JSON.parse(row.data))
+      if (!snapshot) return [] // stored in an older format: wait for the app to resend it
+      return [
+        {
+          deviceId: row.device_id,
+          subscription: { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
+          snapshot,
+          lastNudge:
+            row.date && row.sent_at
+              ? { date: row.date as LocalDate, at: new Date(row.sent_at) }
+              : null,
+        },
+      ]
+    })
+  }
+
+  async recordNudge(deviceId: string, date: LocalDate, at: Date): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO nudge_log (device_id, date, sent_at) VALUES (?, ?, ?)
+         ON CONFLICT (device_id) DO UPDATE SET date = excluded.date, sent_at = excluded.sent_at`,
+      )
+      .bind(deviceId, date, at.toISOString())
+      .run()
   }
 }

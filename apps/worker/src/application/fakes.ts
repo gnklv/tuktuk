@@ -2,6 +2,8 @@
 import type {
   Device,
   DeviceRepository,
+  NudgeTarget,
+  NudgeTargetRepository,
   PushResult,
   PushSender,
   PushSubscriptionData,
@@ -9,7 +11,7 @@ import type {
   SnapshotRepository,
   SubscriptionRepository,
 } from './ports'
-import type { PushPayload, ReminderSnapshot } from '@tuktuk/core'
+import type { LocalDate, PushPayload, ReminderSnapshot } from '@tuktuk/core'
 
 export class InMemoryDevices implements DeviceRepository {
   readonly all = new Map<string, Device>()
@@ -41,6 +43,18 @@ export class InMemorySnapshots implements SnapshotRepository {
   }
   async get(deviceId: string) {
     return this.all.get(deviceId) ?? null
+  }
+}
+
+export class InMemoryNudgeTargets implements NudgeTargetRepository {
+  constructor(public targets: NudgeTarget[] = []) {}
+  async listActive() {
+    return this.targets
+  }
+  async recordNudge(deviceId: string, date: LocalDate, at: Date) {
+    this.targets = this.targets.map((t) =>
+      t.deviceId === deviceId ? { ...t, lastNudge: { date, at } } : t,
+    )
   }
 }
 

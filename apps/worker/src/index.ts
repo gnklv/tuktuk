@@ -1,13 +1,22 @@
 // Composition root of the push server: wires Cloudflare bindings into use cases and handlers.
 import { makeDeviceUseCases } from './application/devices'
+import { makeNudgeCycle } from './application/nudge-cycle'
 import { handleRequest } from './http/router'
 import {
   D1DeviceRepository,
+  D1NudgeTargetRepository,
   D1SnapshotRepository,
   D1SubscriptionRepository,
 } from './infrastructure/d1-repositories'
 import { webCryptoSecrets } from './infrastructure/web-crypto-secrets'
 import { WebPushSender } from './infrastructure/web-push-sender'
+
+const pushSender = (env: Env) =>
+  new WebPushSender({
+    subject: env.VAPID_SUBJECT,
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+  })
 
 export default {
   fetch(request, env, ctx) {
@@ -16,11 +25,7 @@ export default {
       subscriptions: new D1SubscriptionRepository(env.DB),
       snapshots: new D1SnapshotRepository(env.DB),
       secrets: webCryptoSecrets,
-      push: new WebPushSender({
-        subject: env.VAPID_SUBJECT,
-        publicKey: env.VAPID_PUBLIC_KEY,
-        privateKey: env.VAPID_PRIVATE_KEY,
-      }),
+      push: pushSender(env),
       now: () => new Date(),
     })
 
@@ -34,5 +39,16 @@ export default {
       defer: (task) => ctx.waitUntil(task),
       sleep: (ms) => scheduler.wait(ms),
     })
+  },
+
+  /** Cron, every minute: send the reminders that are due. */
+  async scheduled(controller, env) {
+    const cycle = makeNudgeCycle({
+      targets: new D1NudgeTargetRepository(env.DB),
+      subscriptions: new D1SubscriptionRepository(env.DB),
+      push: pushSender(env),
+    })
+    const report = await cycle(new Date(controller.scheduledTime))
+    if (report.sent || report.gone || report.failed) console.log('[cron]', report)
   },
 } satisfies ExportedHandler<Env>

@@ -1,4 +1,4 @@
-import type { PushPayload, ReminderSnapshot } from '@tuktuk/core'
+import type { LocalDate, PushPayload, ReminderSnapshot } from '@tuktuk/core'
 
 export interface Device {
   readonly id: string
@@ -43,4 +43,17 @@ export interface PushSender {
 export interface SnapshotRepository {
   save(deviceId: string, snapshot: ReminderSnapshot, now: Date): Promise<void>
   get(deviceId: string): Promise<ReminderSnapshot | null>
+}
+
+/** A device that may get reminders: it has a push subscription and a snapshot. */
+export interface NudgeTarget {
+  readonly deviceId: string
+  readonly subscription: PushSubscriptionData
+  readonly snapshot: ReminderSnapshot
+  readonly lastNudge: { readonly date: LocalDate; readonly at: Date } | null
+}
+
+export interface NudgeTargetRepository {
+  listActive(): Promise<NudgeTarget[]>
+  recordNudge(deviceId: string, date: LocalDate, at: Date): Promise<void>
 }

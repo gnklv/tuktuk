@@ -6,6 +6,7 @@ import {
   makeArchiveTask,
   makeCheckNudge,
   makeGetReminderSnapshot,
+  makeGetPendingTitles,
   makeGetDayOverview,
   makeGetSettings,
   makeToggleCompletion,
@@ -52,6 +53,7 @@ const useCases: AppUseCases = {
   getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
   updateSettings: (patch) => updateSettings(patch, env),
   getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
+  getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
   checkNudge: makeCheckNudge({
     clock,
     taskRepo,

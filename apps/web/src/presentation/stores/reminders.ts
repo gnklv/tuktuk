@@ -17,13 +17,19 @@ export const useRemindersStore = defineStore('reminders', () => {
   const settingsStore = useSettingsStore()
 
   const permission = shallowRef(notifications.permission())
+  const pushStatus = shallowRef<PushStatus>('off')
   const nextAt = shallowRef<Date | null>(null)
   let checking: Promise<void> | null = null
 
   /** Idempotent and serialized: overlapping calls share one run, so nothing is sent twice. */
   function check(): Promise<void> {
     checking ??= useCases
-      .checkNudge({ settings: settingsStore.settings, userIsLooking: userIsLooking() })
+      .checkNudge({
+        settings: settingsStore.settings,
+        // With push on, the server sends the reminders: the tab only keeps its schedule
+        // (for the "next reminder" hint) and must not notify a second time.
+        userIsLooking: pushStatus.value === 'on' || userIsLooking(),
+      })
       .then((result) => {
         nextAt.value = result.nextAt
       })
@@ -37,8 +43,6 @@ export const useRemindersStore = defineStore('reminders', () => {
     permission.value = await notifications.requestPermission()
     await syncPush()
   }
-
-  const pushStatus = shallowRef<PushStatus>('off')
 
   /**
    * With notification permission, make sure the server has this device's push subscription.
@@ -69,10 +73,10 @@ export const useRemindersStore = defineStore('reminders', () => {
     snapshotTimer = setTimeout(async () => {
       try {
         const { settings } = settingsStore
-        const snapshot = await useCases.getReminderSnapshot(
-          settings,
-          toLocalDate(clock.now(), settings.timeZone),
-        )
+        const today = toLocalDate(clock.now(), settings.timeZone)
+        // Titles first: by the time the server pushes, the device must know what to say.
+        await push.saveLocalTitles(await useCases.getPendingTitles(today))
+        const snapshot = await useCases.getReminderSnapshot(settings, today)
         const serialized = JSON.stringify(snapshot)
         if (serialized === lastSentSnapshot) return
         await push.syncSnapshot(snapshot)

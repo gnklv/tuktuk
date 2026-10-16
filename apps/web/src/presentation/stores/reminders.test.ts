@@ -8,9 +8,11 @@ import {
   makeCheckNudge,
   makeGetDayOverview,
   makeGetReminderSnapshot,
+  makeGetPendingTitles,
   makeToggleCompletion,
   makeUpdateSettings,
   type LocalDate,
+  type PendingTitles,
   type ReminderSnapshot,
 } from '@tuktuk/core'
 import {
@@ -40,6 +42,7 @@ const today = '2026-10-17' as LocalDate
 let app: App
 let useCases: AppUseCases
 let sent: ReminderSnapshot[]
+let localTitles: PendingTitles[]
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -54,6 +57,7 @@ beforeEach(() => {
     getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
     updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
     getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
+    getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
     checkNudge: makeCheckNudge({
       clock,
       taskRepo,
@@ -65,12 +69,16 @@ beforeEach(() => {
     }),
   }
   sent = []
+  localTitles = []
   const push: PushAccess = {
     status: async () => 'on',
     enable: async () => {},
     sendTest: async () => {},
     syncSnapshot: async (snapshot) => {
       sent.push(snapshot)
+    },
+    saveLocalTitles: async (titles) => {
+      localTitles.push(titles)
     },
   }
   app = createApp({})
@@ -102,6 +110,8 @@ describe('reminders store: snapshot sync', () => {
     expect(sent).toHaveLength(1)
     expect(sent[0]?.days[0]).toEqual({ date: today, total: 1, pending: 1 })
     expect(JSON.stringify(sent[0])).not.toContain('Secret')
+    // …but the device keeps them for composing push texts.
+    expect(localTitles.at(-1)?.[today]).toEqual(['Secret'])
 
     store.syncSnapshot() // nothing changed
     await vi.advanceTimersByTimeAsync(1000)
