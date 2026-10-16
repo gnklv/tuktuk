@@ -110,6 +110,7 @@ describe('LocalStorageSettingsRepository', () => {
     timeZone: 'Europe/Moscow',
     dayDeadline: 1380 as TimeOfDay,
     quietHours: { start: 1410 as TimeOfDay, end: 480 as TimeOfDay },
+    theme: 'dark',
   }
 
   it('returns null before the first save, then round-trips', async () => {
@@ -117,6 +118,13 @@ describe('LocalStorageSettingsRepository', () => {
     expect(await repo.get()).toBeNull()
     await repo.save(settings)
     expect(await repo.get()).toEqual(settings)
+  })
+
+  it('defaults the theme for settings saved before themes existed', async () => {
+    const old: Record<string, unknown> = { ...settings }
+    delete old.theme
+    storage.setItem(STORAGE_KEYS.settings, JSON.stringify(old))
+    expect((await new LocalStorageSettingsRepository(storage).get())?.theme).toBe('system')
   })
 
   it('ignores settings with an unsupported locale', async () => {

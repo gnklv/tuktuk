@@ -1,12 +1,23 @@
 <script setup lang="ts">
-/** Round icon-only button. `label` is required: it's the accessible name. */
-defineProps<{ label: string }>()
+import type { Component } from 'vue'
+
+/**
+ * Round icon-only button. `label` is required: it's the accessible name.
+ * Pass `as` (e.g. `RouterLink` with `to`) to render a link with the same look.
+ */
+const { as } = defineProps<{ label: string; as?: string | Component }>()
 </script>
 
 <template>
-  <button type="button" class="ui-icon-button" :aria-label="label" :title="label">
+  <component
+    :is="as ?? 'button'"
+    :type="as ? undefined : 'button'"
+    class="ui-icon-button"
+    :aria-label="label"
+    :title="label"
+  >
     <slot />
-  </button>
+  </component>
 </template>
 
 <style scoped>
@@ -33,7 +44,7 @@ defineProps<{ label: string }>()
 }
 
 .ui-icon-button :deep(svg) {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 </style>

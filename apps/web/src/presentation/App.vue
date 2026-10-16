@@ -12,6 +12,12 @@ watchEffect(() => {
   document.documentElement.lang = locale.value
   document.title = t('app.name')
 })
+
+watchEffect(() => {
+  const { theme } = settingsStore.settings
+  if (theme === 'system') delete document.documentElement.dataset.theme
+  else document.documentElement.dataset.theme = theme
+})
 </script>
 
 <template>

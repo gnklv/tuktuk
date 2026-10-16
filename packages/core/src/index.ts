@@ -30,8 +30,8 @@ export type { Task, TaskId, TaskSchedule, NewTaskInput } from './domain/task'
 export type { Completion } from './domain/completion'
 export { buildDayOverview } from './domain/day-overview'
 export type { DayItem, DayOverview } from './domain/day-overview'
-export { createDefaultSettings } from './domain/settings'
-export type { Settings } from './domain/settings'
+export { THEMES, createDefaultSettings, changeSettings, validateSettings } from './domain/settings'
+export type { Settings, Theme } from './domain/settings'
 
 // Application ports
 export type { Clock } from './application/ports/clock'

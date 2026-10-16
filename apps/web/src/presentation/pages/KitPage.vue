@@ -8,13 +8,16 @@ import {
   UiIconButton,
   UiSegmentedControl,
   UiTextField,
+  UiTimeField,
 } from '../ui'
 
 type Theme = 'system' | 'light' | 'dark'
 
-const pressure = ref(0)
-const theme = ref<Theme>('system')
 const root = document.documentElement
+// Restore the user's theme when leaving the kit.
+const initialTheme = root.dataset.theme
+const pressure = ref(0)
+const theme = ref<Theme>((initialTheme as Theme | undefined) ?? 'system')
 
 watchEffect(() => {
   root.style.setProperty('--pressure', String(pressure.value))
@@ -24,7 +27,8 @@ watchEffect(() => {
 
 onUnmounted(() => {
   root.style.removeProperty('--pressure')
-  delete root.dataset.theme
+  if (initialTheme) root.dataset.theme = initialTheme
+  else delete root.dataset.theme
 })
 
 const swatches = [
@@ -47,6 +51,7 @@ const checked = ref(true)
 const text = ref('')
 const segment = ref<'a' | 'b'>('a')
 const chips = ref<number[]>([1, 3])
+const time = ref('23:00')
 </script>
 
 <template>
@@ -107,6 +112,7 @@ const chips = ref<number[]>([1, 3])
       <UiCheckbox v-model="checked">Checkbox — {{ checked ? 'done' : 'pending' }}</UiCheckbox>
       <UiTextField v-model="text" label="Text field" placeholder="Placeholder" />
       <UiTextField v-model="text" label="With error" error="Something is wrong" />
+      <UiTimeField v-model="time" label="Time field" />
       <UiSegmentedControl
         v-model="segment"
         label="Segmented"

@@ -8,6 +8,9 @@ export type DomainErrorCode =
   | 'task.invalidWeekday'
   | 'task.notFound'
   | 'task.notScheduled'
+  | 'settings.deadlineAtDayStart'
+  | 'settings.deadlineInQuietHours'
+  | 'settings.quietHoursEmpty'
 
 export class DomainError extends Error {
   constructor(readonly code: DomainErrorCode) {

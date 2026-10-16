@@ -1,4 +1,11 @@
-import { isLocale, type Settings, type SettingsRepository, type TimeOfDay } from '@tuktuk/core'
+import {
+  THEMES,
+  isLocale,
+  type Settings,
+  type SettingsRepository,
+  type Theme,
+  type TimeOfDay,
+} from '@tuktuk/core'
 import { STORAGE_KEYS, readJson, writeJson } from './json-storage'
 
 // Settings contain only JSON-safe values, so the DTO is the entity itself.
@@ -23,6 +30,8 @@ export class LocalStorageSettingsRepository implements SettingsRepository {
       timeZone: value.timeZone,
       dayDeadline: value.dayDeadline as TimeOfDay,
       quietHours: value.quietHours ?? null,
+      // Missing in settings saved before themes existed.
+      theme: THEMES.includes(value.theme as Theme) ? (value.theme as Theme) : 'system',
     }
   }
 

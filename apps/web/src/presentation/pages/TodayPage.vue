@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useAppI18n } from '../i18n'
 import { localDateToDate } from '../i18n/dates'
 import { useTodayStore } from '../stores/today'
 import { useDayRollover } from '../composables/use-day-rollover'
-import LocaleSwitcher from '../components/LocaleSwitcher.vue'
+import { UiIconButton } from '../ui'
 import TaskItem from '../features/today/TaskItem.vue'
 import AddTaskForm from '../features/today/AddTaskForm.vue'
 
@@ -18,7 +19,24 @@ useDayRollover(today.syncDay)
 <template>
   <div class="today">
     <header class="today__header">
-      <h1>{{ t('app.name') }} 🐦</h1>
+      <div class="today__title">
+        <h1>{{ t('app.name') }} 🐦</h1>
+        <UiIconButton :as="RouterLink" to="/settings" :label="t('settings.title')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
+            />
+          </svg>
+        </UiIconButton>
+      </div>
       <p class="muted">
         {{ t('today.date', { date: d(localDateToDate(today.date), 'dayLong') }) }}
       </p>
@@ -45,10 +63,6 @@ useDayRollover(today.syncDay)
     <div class="today__add">
       <AddTaskForm />
     </div>
-
-    <footer class="today__footer">
-      <LocaleSwitcher />
-    </footer>
   </div>
 </template>
 
@@ -90,9 +104,12 @@ useDayRollover(today.syncDay)
   background: linear-gradient(transparent, var(--color-bg) var(--space-3));
 }
 
-.today__footer {
+.today__title {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-right: calc(-1 * var(--space-2));
 }
 
 .muted {
