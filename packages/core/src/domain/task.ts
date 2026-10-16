@@ -45,10 +45,6 @@ export function createTask(
   }
 }
 
-export function renameTask(task: Task, title: string): Task {
-  return { ...task, title: normalizeTitle(title) }
-}
-
 export function archiveTask(task: Task, today: LocalDate): Task {
   return task.archivedOn ? task : { ...task, archivedOn: today }
 }

@@ -4,7 +4,6 @@ import {
   archiveTask,
   createTask,
   isScheduledOn,
-  renameTask,
   type NewTaskInput,
   type TaskId,
 } from './task'
@@ -101,12 +100,7 @@ describe('isScheduledOn', () => {
   })
 })
 
-describe('renameTask / archiveTask', () => {
-  it('renames with the same validation', () => {
-    expect(renameTask(make(), '  Buy milk ').title).toBe('Buy milk')
-    expectDomainError(() => renameTask(make(), ''), 'task.titleEmpty')
-  })
-
+describe('archiveTask', () => {
   it('keeps the first archive date', () => {
     const archived = archiveTask(make(), d('2026-10-14'))
     expect(archiveTask(archived, d('2026-10-20')).archivedOn).toBe('2026-10-14')
