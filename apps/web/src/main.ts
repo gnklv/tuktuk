@@ -23,6 +23,7 @@ import {
   NotificationsKey,
   PushKey,
   UiPrefsKey,
+  EnvironmentKey,
   UseCasesKey,
   type AppUseCases,
 } from './presentation/di'
@@ -100,6 +101,7 @@ createApp(App)
   .provide(NotificationsKey, notifier)
   .provide(PushKey, push)
   .provide(UiPrefsKey, new LocalStorageUiPrefs(localStorage))
+  .provide(EnvironmentKey, browserEnvironment)
   .use(createPinia())
   .use(createAppI18n(settings.locale))
   .use(createAppRouter())

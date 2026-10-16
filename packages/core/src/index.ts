@@ -23,7 +23,12 @@ export type { Completion } from './domain/completion'
 
 export type { DayItem, DayOverview } from './domain/day-overview'
 
-export { THEMES, createDefaultSettings, restoreSettings } from './domain/settings'
+export {
+  THEMES,
+  DEFAULT_QUIET_HOURS,
+  createDefaultSettings,
+  restoreSettings,
+} from './domain/settings'
 export type { Settings, Theme } from './domain/settings'
 
 export { PRESSURE_LEVELS, computePressure, nextNudgeAt } from './domain/pressure'

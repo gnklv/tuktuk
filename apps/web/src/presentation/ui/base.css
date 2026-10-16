@@ -58,3 +58,14 @@ textarea {
   white-space: nowrap;
   border: 0;
 }
+
+/* Secondary text: hints under controls and error messages. */
+.ui-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.ui-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}

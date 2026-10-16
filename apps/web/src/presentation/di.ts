@@ -2,6 +2,7 @@ import { inject, type InjectionKey } from 'vue'
 import type {
   Clock,
   Settings,
+  SettingsEnvironment,
   makeAddTask,
   makeCheckNudge,
   makeGetReminderSnapshot,
@@ -36,6 +37,9 @@ export const UseCasesKey: InjectionKey<AppUseCases> = Symbol.for('tuktuk:UseCase
 export const InitialSettingsKey: InjectionKey<Settings> = Symbol.for('tuktuk:InitialSettings')
 export const PushKey: InjectionKey<PushAccess> = Symbol.for('tuktuk:Push')
 
+/** The device's language and timezone right now (they can change, e.g. when travelling). */
+export const EnvironmentKey: InjectionKey<() => SettingsEnvironment> =
+  Symbol.for('tuktuk:Environment')
 export const UiPrefsKey: InjectionKey<UiPrefs> = Symbol.for('tuktuk:UiPrefs')
 export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol.for('tuktuk:Notifications')
 
@@ -53,3 +57,4 @@ export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKe
 export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)
 export const usePush = (): PushAccess => injectStrict(PushKey)
 export const useUiPrefs = (): UiPrefs => injectStrict(UiPrefsKey)
+export const useEnvironment = (): (() => SettingsEnvironment) => injectStrict(EnvironmentKey)

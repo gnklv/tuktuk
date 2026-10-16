@@ -23,12 +23,15 @@ export interface Settings {
   readonly theme: Theme
 }
 
+/** Night-time silence suggested on first launch and when quiet hours are turned on. */
+export const DEFAULT_QUIET_HOURS: TimeRange = { start: timeOfDay(23, 30), end: timeOfDay(8) }
+
 export function createDefaultSettings(env: { locale: Locale; timeZone: string }): Settings {
   return {
     locale: env.locale,
     timeZone: env.timeZone,
     dayDeadline: timeOfDay(23),
-    quietHours: { start: timeOfDay(23, 30), end: timeOfDay(8) },
+    quietHours: DEFAULT_QUIET_HOURS,
     theme: 'system',
   }
 }
