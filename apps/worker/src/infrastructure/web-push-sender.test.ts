@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WebPushSender } from './web-push-sender'
-
-const b64url = (bytes: ArrayBuffer | Uint8Array) =>
-  btoa(String.fromCharCode(...new Uint8Array(bytes)))
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '')
+import { toBase64Url } from './base64url'
 
 /** Real keys, as a browser and the server would have them. */
 async function keys() {
@@ -18,14 +13,14 @@ async function keys() {
   return {
     vapid: {
       subject: 'https://gnklv.github.io/tuktuk/',
-      publicKey: b64url(await crypto.subtle.exportKey('raw', vapid.publicKey)),
+      publicKey: toBase64Url(await crypto.subtle.exportKey('raw', vapid.publicKey)),
       privateKey: (await crypto.subtle.exportKey('jwk', vapid.privateKey)).d!,
     },
     subscription: {
       endpoint: 'https://web.push.apple.com/QGuQyavXutnMH',
       keys: {
-        p256dh: b64url(await crypto.subtle.exportKey('raw', browser.publicKey)),
-        auth: b64url(crypto.getRandomValues(new Uint8Array(16))),
+        p256dh: toBase64Url(await crypto.subtle.exportKey('raw', browser.publicKey)),
+        auth: toBase64Url(crypto.getRandomValues(new Uint8Array(16))),
       },
     },
   }

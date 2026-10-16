@@ -42,9 +42,4 @@ const { as } = defineProps<{ label: string; as?: string | Component }>()
   background: var(--color-accent-soft);
   color: var(--color-text);
 }
-
-.ui-icon-button :deep(svg) {
-  width: 22px;
-  height: 22px;
-}
 </style>

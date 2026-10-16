@@ -1,13 +1,8 @@
 import type { Secrets } from '../application/ports'
+import { toBase64Url } from './base64url'
 
 const toHex = (bytes: ArrayBuffer) =>
   [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('')
-
-const toBase64Url = (bytes: Uint8Array) =>
-  btoa(String.fromCharCode(...bytes))
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/, '')
 
 export const webCryptoSecrets: Secrets = {
   newId: () => crypto.randomUUID(),

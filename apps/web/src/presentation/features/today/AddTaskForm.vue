@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { TASK_TITLE_MAX_LENGTH, type TaskSchedule, type Weekday } from '@tuktuk/core'
-import { UiButton, UiChipGroup, UiSegmentedControl, UiTextField } from '../../ui'
+import { UiButton, UiChipGroup, UiIcon, UiSegmentedControl, UiTextField } from '../../ui'
 import { useAppI18n } from '../../i18n'
 import { errorMessageKey } from '../../i18n/errors'
 import { WEEKDAYS, weekdayName } from '../../i18n/weekdays'
@@ -68,18 +68,7 @@ async function submit() {
         @update:model-value="error = null"
       />
       <UiButton type="submit" square :disabled="pending" :aria-label="t('addTask.submit')">
-        <svg
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          stroke-linecap="round"
-          aria-hidden="true"
-        >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
+        <UiIcon name="plus" />
       </UiButton>
     </div>
   </form>

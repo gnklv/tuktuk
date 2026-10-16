@@ -2,7 +2,15 @@
 import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { LOCALES, THEMES, timeOfDay, type Locale, type Settings, type Theme } from '@tuktuk/core'
-import { UiButton, UiCard, UiCheckbox, UiIconButton, UiSegmentedControl, UiTimeField } from '../ui'
+import {
+  UiButton,
+  UiCard,
+  UiCheckbox,
+  UiIcon,
+  UiIconButton,
+  UiSegmentedControl,
+  UiTimeField,
+} from '../ui'
 import { LOCALE_NAMES } from '@tuktuk/i18n'
 import { useAppI18n } from '../i18n'
 import { errorMessageKey } from '../i18n/errors'
@@ -110,16 +118,7 @@ const errorFor = (section: Section) =>
   <div class="settings">
     <header class="settings__header">
       <UiIconButton :as="RouterLink" to="/" :label="t('settings.back')">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M15 5l-7 7 7 7" />
-        </svg>
+        <UiIcon name="back" :size="22" />
       </UiIconButton>
       <h1>{{ t('settings.title') }}</h1>
     </header>

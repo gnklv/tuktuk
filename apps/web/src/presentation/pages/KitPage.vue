@@ -5,6 +5,7 @@ import {
   UiCard,
   UiCheckbox,
   UiChipGroup,
+  UiIcon,
   UiIconButton,
   UiProgress,
   UiSegmentedControl,
@@ -130,9 +131,7 @@ const time = ref('23:00')
       />
       <div class="row">
         <UiIconButton label="Close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
-          </svg>
+          <UiIcon name="close" />
         </UiIconButton>
       </div>
     </section>
