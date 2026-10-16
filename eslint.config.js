@@ -11,7 +11,7 @@ const restrict = (...patterns) => ({
 
 const frameworkFree = {
   group: ['vue', 'vue/*', 'pinia', '@vue/*', 'vue-i18n'],
-  message: 'Core and i18n must stay framework-agnostic: they are shared with the server.',
+  message: 'Core, i18n and the web application layer must stay framework-agnostic.',
 }
 const notApplication = {
   group: ['**/application/**', '**/application'],
@@ -19,11 +19,11 @@ const notApplication = {
 }
 const notInfrastructure = {
   group: ['**/infrastructure/**', '**/infrastructure'],
-  message: 'Presentation must not import infrastructure. Inject it from main.ts instead.',
+  message: 'Depend on ports; concrete implementations are wired in the composition root.',
 }
 const notPresentation = {
   group: ['**/presentation/**', '**/presentation'],
-  message: 'Infrastructure must not depend on presentation.',
+  message: 'Only presentation knows about presentation.',
 }
 
 const notHttp = {
@@ -35,6 +35,10 @@ const boundaries = [
   { files: ['packages/core/src/domain/**'], rules: restrict(frameworkFree, notApplication) },
   { files: ['packages/core/src/application/**'], rules: restrict(frameworkFree) },
   { files: ['packages/i18n/src/**'], rules: restrict(frameworkFree) },
+  {
+    files: ['apps/web/src/application/**'],
+    rules: restrict(frameworkFree, notInfrastructure, notPresentation),
+  },
   { files: ['apps/web/src/presentation/**'], rules: restrict(notInfrastructure) },
   { files: ['apps/web/src/infrastructure/**'], rules: restrict(notPresentation) },
   // Worker: http is its presentation layer.

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { toLocalDate, type NudgeMessage } from '@tuktuk/core'
-import { useClock, useNotifications, usePush, useUseCases, type PushStatus } from '../di'
+import type { PushStatus } from '../../application/ports'
+import { useClock, useNotifications, usePush, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */

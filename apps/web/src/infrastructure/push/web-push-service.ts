@@ -1,8 +1,7 @@
 import type { Locale, PendingTitles, ReminderSnapshot } from '@tuktuk/core'
 import { reminderTitles } from '../reminder-titles'
+import type { PushAccess, PushStatus } from '../../application/ports'
 import { ApiError, api } from './api-client'
-
-export type PushStatus = 'unsupported' | 'off' | 'on'
 
 interface DeviceCredentials {
   deviceId: string
@@ -18,7 +17,7 @@ const base64UrlToBytes = (value: string) =>
  * Web Push subscription of this device on the push server. The server never learns task titles:
  * it gets only the browser's push endpoint (and, later, counts and settings).
  */
-export class WebPushService {
+export class WebPushService implements PushAccess {
   constructor(private readonly storage: Storage) {}
 
   async status(): Promise<PushStatus> {

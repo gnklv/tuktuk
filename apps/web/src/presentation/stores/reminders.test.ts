@@ -33,8 +33,8 @@ import {
   PushKey,
   UseCasesKey,
   type AppUseCases,
-  type PushAccess,
 } from '../di'
+import type { PushAccess } from '../../application/ports'
 import { useRemindersStore } from './reminders'
 
 const env = { locale: 'ru', timeZone: 'Europe/Moscow' } as const

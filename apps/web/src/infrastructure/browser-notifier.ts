@@ -1,10 +1,5 @@
 import type { Notifier, NudgeMessage } from '@tuktuk/core'
-
-/**
- * `needs-install`: iOS shows notifications only for web apps added to the Home Screen,
- * so in a Safari tab the user first has to install the app.
- */
-export type NotificationPermissionState = NotificationPermission | 'unsupported' | 'needs-install'
+import type { NotificationAccess, NotificationPermissionState } from '../application/ports'
 
 const TAG = 'tuktuk-nudge'
 
@@ -21,7 +16,7 @@ const isStandalone = () =>
  * System notifications. Uses the Service Worker when there is one — the only way that works on
  * iOS and Android; plain `new Notification()` remains as a fallback for dev mode on desktop.
  */
-export class BrowserNotifier implements Notifier {
+export class BrowserNotifier implements Notifier, NotificationAccess {
   permission(): NotificationPermissionState {
     if (isIos() && !isStandalone()) return 'needs-install'
     return 'Notification' in window ? Notification.permission : 'unsupported'
