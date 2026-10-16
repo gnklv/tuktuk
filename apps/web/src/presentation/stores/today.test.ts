@@ -5,14 +5,18 @@ import {
   createDefaultSettings,
   makeAddTask,
   makeArchiveTask,
+  makeCheckNudge,
   makeGetDayOverview,
   makeToggleCompletion,
   makeUpdateSettings,
 } from '@tuktuk/core'
 import {
   InMemoryCompletionRepository,
+  InMemoryNudgeLog,
   InMemorySettingsRepository,
   InMemoryTaskRepository,
+  RecordingNotifier,
+  fakeNudgeCopy,
   fakeClock,
   sequentialIds,
 } from '@tuktuk/core/testing'
@@ -36,6 +40,15 @@ beforeEach(() => {
     toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
     getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
     updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
+    checkNudge: makeCheckNudge({
+      clock,
+      taskRepo,
+      completionRepo,
+      nudgeLog: new InMemoryNudgeLog(),
+      notifier: new RecordingNotifier(),
+      copy: fakeNudgeCopy,
+      random: () => 0,
+    }),
   }
   app = createApp({})
     .provide(ClockKey, clock)

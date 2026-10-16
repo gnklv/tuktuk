@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Tuk-Tuk: a woodpecker head. Full-bleed background so it works as a maskable icon. -->
+  <rect width="512" height="512" fill="#00aa46"/>
+  <!-- crest -->
+  <path d="M168 168 L132 112 L206 150 Z" fill="#e5383b"/>
+  <!-- head -->
+  <circle cx="232" cy="290" r="140" fill="#ffffff"/>
+  <!-- red cap over the whole crown -->
+  <path d="M93 270 A140 140 0 0 1 371 270 Q300 236 232 238 Q160 240 93 270 Z" fill="#e5383b"/>
+  <!-- black stripe through the eye, like a real woodpecker -->
+  <path d="M120 300 Q232 282 362 296 L364 312 Q232 300 122 318 Z" fill="#1d2330" opacity="0.9"/>
+  <!-- long chisel beak -->
+  <path d="M356 276 L470 298 L356 318 Z" fill="#ffb703" stroke="#d98e00" stroke-width="6" stroke-linejoin="round"/>
+  <!-- eye -->
+  <circle cx="292" cy="290" r="26" fill="#1d2330"/>
+  <circle cx="301" cy="281" r="9" fill="#ffffff"/>
+</svg>

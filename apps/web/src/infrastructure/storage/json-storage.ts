@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   tasks: 'tuktuk:v1:tasks',
   completions: 'tuktuk:v1:completions',
   settings: 'tuktuk:v1:settings',
+  nudgeLog: 'tuktuk:v1:nudge-log',
 } as const
 
 export function readJson(storage: Storage, key: string): unknown {

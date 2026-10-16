@@ -44,6 +44,8 @@ function onChange(event: Event) {
 }
 
 .ui-time-field__input {
+  width: 100%;
+  min-width: 0;
   min-height: var(--tap-min);
   padding: 0 var(--space-4);
   border: var(--border-width) solid var(--color-border);

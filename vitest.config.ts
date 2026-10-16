@@ -13,6 +13,13 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'i18n',
+          root: 'packages/i18n',
+          environment: 'node',
+        },
+      },
+      {
+        test: {
           name: 'web',
           root: 'apps/web',
           environment: 'node',

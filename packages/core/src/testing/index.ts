@@ -2,6 +2,9 @@
 import type { Clock } from '../application/ports/clock'
 import type { CompletionRepository } from '../application/ports/completion-repository'
 import type { IdGenerator } from '../application/ports/id-generator'
+import type { Notifier } from '../application/ports/notifier'
+import type { NudgeLogEntry, NudgeLogRepository } from '../application/ports/nudge-log-repository'
+import type { NudgeCopy, NudgeMessage, NudgeMood } from '../domain/nudge-messages'
 import type { SettingsRepository } from '../application/ports/settings-repository'
 import type { TaskRepository } from '../application/ports/task-repository'
 import type { Completion } from '../domain/completion'
@@ -64,4 +67,34 @@ export function fakeClock(iso: string): Clock & { set(iso: string): void } {
 export function sequentialIds(prefix = 'id'): IdGenerator {
   let n = 0
   return { next: () => `${prefix}-${++n}` }
+}
+
+export class InMemoryNudgeLog implements NudgeLogRepository {
+  constructor(public last: NudgeLogEntry | null = null) {}
+  async getLast() {
+    return this.last
+  }
+  async save(entry: NudgeLogEntry) {
+    this.last = entry
+  }
+}
+
+export class RecordingNotifier implements Notifier {
+  readonly shown: NudgeMessage[] = []
+  async show(message: NudgeMessage) {
+    this.shown.push(message)
+  }
+}
+
+/** Deterministic `random`: cycles through the given values. */
+export function sequenceRandom(...values: number[]): () => number {
+  let i = 0
+  return () => values[i++ % values.length] ?? 0
+}
+
+/** Predictable wording: `[mood] #i {task} / {time}`, three variants per mood. */
+export const fakeNudgeCopy: NudgeCopy = {
+  title: (locale, mood: NudgeMood) => `${locale}:${mood}`,
+  variants: (_, mood) => [0, 1, 2].map((i) => `[${mood}] #${i} {task} / {time}`),
+  duration: (_, minutes) => `${minutes}m`,
 }

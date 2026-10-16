@@ -1,8 +1,10 @@
 import { inject, type InjectionKey } from 'vue'
 import type {
   Clock,
+  NudgeMessage,
   Settings,
   makeAddTask,
+  makeCheckNudge,
   makeArchiveTask,
   makeGetDayOverview,
   makeToggleCompletion,
@@ -15,12 +17,29 @@ export interface AppUseCases {
   toggleCompletion: ReturnType<typeof makeToggleCompletion>
   getDayOverview: ReturnType<typeof makeGetDayOverview>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
+  checkNudge: ReturnType<typeof makeCheckNudge>
+}
+
+export type NotificationPermissionState =
+  | 'granted'
+  | 'denied'
+  | 'default'
+  | 'unsupported'
+  /** iOS Safari tab: notifications work only after "Add to Home Screen". */
+  | 'needs-install'
+
+/** System notifications as the UI needs them: permission handling and a test message. */
+export interface NotificationAccess {
+  permission(): NotificationPermissionState
+  requestPermission(): Promise<NotificationPermissionState>
+  show(message: NudgeMessage): Promise<void>
 }
 
 export const ClockKey: InjectionKey<Clock> = Symbol('Clock')
 export const UseCasesKey: InjectionKey<AppUseCases> = Symbol('UseCases')
 /** Settings loaded before mount, so the UI never sees "no settings yet". */
 export const InitialSettingsKey: InjectionKey<Settings> = Symbol('InitialSettings')
+export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol('Notifications')
 
 function injectStrict<T>(key: InjectionKey<T>): T {
   const value = inject(key)
@@ -33,3 +52,4 @@ function injectStrict<T>(key: InjectionKey<T>): T {
 export const useClock = (): Clock => injectStrict(ClockKey)
 export const useUseCases = (): AppUseCases => injectStrict(UseCasesKey)
 export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKey)
+export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)

@@ -1,31 +1,30 @@
 import { createI18n, useI18n } from 'vue-i18n'
 import { DEFAULT_LOCALE, type Locale } from '@tuktuk/core'
-import { en, type MessageSchema } from './messages/en'
-import { ru } from './messages/ru'
+import { messages, type MessageSchema } from '@tuktuk/i18n'
 
 const dateFormats = {
   dayLong: { weekday: 'long', day: 'numeric', month: 'long' },
+  time: { hour: '2-digit', minute: '2-digit' },
 } as const
 
-/** Dot-separated paths to leaf strings: `{ a: { b: '' } }` → `'a.b'`. */
+/** Dot-separated paths to leaf strings: `{ a: { b: '' } }` → `'a.b'`. Lists are skipped. */
 type LeafPaths<T> = {
-  [K in keyof T & string]: T[K] extends string ? K : `${K}.${LeafPaths<T[K]>}`
+  [K in keyof T & string]: T[K] extends string
+    ? K
+    : T[K] extends readonly unknown[]
+      ? never
+      : `${K}.${LeafPaths<T[K]>}`
 }[keyof T & string]
 
 export type MessageKey = LeafPaths<MessageSchema>
 export type DateFormat = keyof typeof dateFormats
-
-export const LOCALE_NAMES: Record<Locale, string> = {
-  ru: 'Русский',
-  en: 'English',
-}
 
 export function createAppI18n(locale: Locale) {
   return createI18n({
     legacy: false,
     locale,
     fallbackLocale: DEFAULT_LOCALE,
-    messages: { en, ru },
+    messages,
     datetimeFormats: { en: dateFormats, ru: dateFormats },
   })
 }

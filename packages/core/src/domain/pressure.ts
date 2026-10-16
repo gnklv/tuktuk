@@ -106,7 +106,10 @@ export function nextNudgeAt(input: NextNudgeInput): Date | null {
   if (!quiet && time < DEFAULT_DAY_START) return at(DEFAULT_DAY_START)
   if (!lastNudgeAt) return now
 
-  const due = addMinutes(lastNudgeAt, nudgeIntervalMinutes(computePressure(input).value))
+  // The interval is set by the pressure at the last reminder, so the predicted time is exact
+  // (and can be shown in the UI); it still shrinks from one reminder to the next.
+  const pressureThen = computePressure({ ...input, now: lastNudgeAt }).value
+  const due = addMinutes(lastNudgeAt, nudgeIntervalMinutes(pressureThen))
   if (quiet && due >= at(quiet.start)) return at(quiet.end)
   return due
 }

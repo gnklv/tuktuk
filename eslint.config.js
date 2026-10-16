@@ -11,7 +11,7 @@ const restrict = (...patterns) => ({
 
 const frameworkFree = {
   group: ['vue', 'vue/*', 'pinia', '@vue/*', 'vue-i18n'],
-  message: 'Core must stay framework-agnostic.',
+  message: 'Core and i18n must stay framework-agnostic: they are shared with the server.',
 }
 const notApplication = {
   group: ['**/application/**', '**/application'],
@@ -29,6 +29,7 @@ const notPresentation = {
 const boundaries = [
   { files: ['packages/core/src/domain/**'], rules: restrict(frameworkFree, notApplication) },
   { files: ['packages/core/src/application/**'], rules: restrict(frameworkFree) },
+  { files: ['packages/i18n/src/**'], rules: restrict(frameworkFree) },
   { files: ['apps/web/src/presentation/**'], rules: restrict(notInfrastructure) },
   { files: ['apps/web/src/infrastructure/**'], rules: restrict(notPresentation) },
 ]

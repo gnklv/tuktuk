@@ -116,9 +116,11 @@ describe('nextNudgeAt', () => {
   })
 
   it('spaces reminders by the current pressure', () => {
-    // 12:00 → pressure ≈ 0.071 → interval 157 min
-    expect(next('12:00', at('11:00'))).toEqual(at('13:37'))
-    // 22:00 → pressure ≈ 0.871 → interval 13 min
+    // last at 11:00 → pressure then 0.04 → interval 167 min
+    expect(next('12:00', at('11:00'))).toEqual(at('13:47'))
+    // the answer doesn't depend on when we ask
+    expect(next('13:30', at('11:00'))).toEqual(at('13:47'))
+    // last at 21:55 → pressure then ≈ 0.861 → interval 13 min
     expect(next('22:00', at('21:55'))).toEqual(at('22:08'))
   })
 

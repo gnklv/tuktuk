@@ -5,14 +5,16 @@ import { UiCard, UiProgress } from '../../ui'
 import { useAppI18n } from '../../i18n'
 import { useFormatDuration } from '../../i18n/duration'
 
-const { pressure, deadline, done, total } = defineProps<{
+const { pressure, deadline, done, total, nextNudgeAt } = defineProps<{
   pressure: DayPressure
   deadline: TimeOfDay
   done: number
   total: number
+  /** Shown only when reminders can actually be delivered. */
+  nextNudgeAt: Date | null
 }>()
 
-const { t } = useAppI18n()
+const { t, d } = useAppI18n()
 const formatDuration = useFormatDuration()
 
 const headline = computed(() =>
@@ -29,7 +31,12 @@ const headline = computed(() =>
       <p class="deadline__at">{{ t('deadline.at', { time: formatTimeOfDay(deadline) }) }}</p>
     </div>
     <UiProgress :value="pressure.elapsed" :label="t('deadline.progressLabel')" />
-    <p class="deadline__tasks">{{ t('today.progress', { done, total }) }}</p>
+    <div class="deadline__row">
+      <p class="deadline__tasks">{{ t('today.progress', { done, total }) }}</p>
+      <p v-if="nextNudgeAt" class="deadline__tasks">
+        🔔 {{ t('reminders.next', { time: d(nextNudgeAt, 'time') }) }}
+      </p>
+    </div>
   </UiCard>
 </template>
 

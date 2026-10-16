@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { watchEffect } from 'vue'
+import { onMounted, watch, watchEffect } from 'vue'
 import { RouterView } from 'vue-router'
 import { useAppI18n } from './i18n'
 import { useSettingsStore } from './stores/settings'
 import { useTodayStore } from './stores/today'
+import { useRemindersStore } from './stores/reminders'
+import { useClockTick } from './composables/use-clock-tick'
 
 const { t, locale } = useAppI18n()
 const settingsStore = useSettingsStore()
 const todayStore = useTodayStore()
+const reminders = useRemindersStore()
+
+// App-wide, so reminders keep coming on any screen.
+onMounted(todayStore.load)
+useClockTick(async () => {
+  await todayStore.tick()
+  reminders.refreshPermission()
+  await reminders.check()
+})
+// Tasks or settings changed → the next reminder may be due earlier, later or not at all.
+watch([() => todayStore.overview, () => settingsStore.settings], () => reminders.check())
 
 watchEffect(() => {
   locale.value = settingsStore.settings.locale
@@ -37,6 +50,9 @@ watchEffect(() => {
 .layout {
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4);
+  /* Standalone on iPhone: content goes under the notch and the home indicator. */
+  padding: max(var(--space-5), env(safe-area-inset-top))
+    max(var(--space-4), env(safe-area-inset-right)) max(var(--space-5), env(safe-area-inset-bottom))
+    max(var(--space-4), env(safe-area-inset-left));
 }
 </style>

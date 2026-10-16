@@ -37,7 +37,8 @@ Domain and application layers live in `@tuktuk/core` and know nothing about Vue,
 ```
 tuktuk/
 ├─ packages/
-│  └─ core/        @tuktuk/core — domain + application layers
+│  ├─ core/        @tuktuk/core — domain + application layers, no user-facing text
+│  └─ i18n/        @tuktuk/i18n — all ru/en text: UI strings and reminder wording
 ├─ apps/
 │  ├─ web/         Vue app — infrastructure + presentation
 │  └─ worker/      Cloudflare Worker for push reminders (planned)
@@ -50,6 +51,10 @@ Conventions:
 - Never call `new Date()` inside core — use the injected `Clock`.
 - No abstraction until there's a second implementation or a test needs it.
 - Layer boundaries are enforced by `no-restricted-imports` in `eslint.config.js`.
+- All text lives in `@tuktuk/i18n`, one dictionary per locale. Core decides _what_ a reminder says
+  (mood, which task, no repeats) and gets the wording through the `NudgeCopy` port. Every locale
+  must match the English dictionary's shape, down to the number of reminder variants — enforced by
+  the compiler.
 
 ## Design system
 
@@ -67,16 +72,25 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 - [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
 - [x] **1. Today's tasks** — data model (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage, habits by weekday, task removal, day rollover
 - [x] **2. Day deadline & pressure** — settings screen, pressure model (`computePressure`, `nextNudgeAt`), pressure-driven UI, deadline card, emoji mascot
-- [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
+- [x] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
 - 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
 - [ ] **4. Streak** — a day counts when all required tasks are done, day summary
-- [ ] **5. PWA** — manifest, offline, "Add to Home Screen" onboarding (required for Web Push on iOS)
+- [x] **5. PWA** — manifest, icons, offline via Service Worker, notifications through the Service Worker, iOS "Add to Home Screen" onboarding, safe areas
 - [ ] **6. Push server** — Cloudflare Worker: snapshot sync, cron, Web Push, "Done" action
 - 🏁 **MVP** — reminders reach the phone while the app is closed, streak keeps you coming back
 - [ ] **7. XP & levels** — XP with early-finish multiplier, levels
 - [ ] **8. Telegram bot** — second reminder channel: account linking, inline "Done" / "Later" buttons
 - [ ] **9. Mascot** — geometric woodpecker in Figma (7 moods), later Rive animation
 - [ ] **10. Polish** — streak freezes, limited snoozes, achievements, "name the first step", mascot personalities, accounts & sync, undo instead of confirm
+
+## Install on iPhone
+
+1. Open https://gnklv.github.io/tuktuk/ in **Safari**.
+2. Tap **Share** → **Add to Home Screen**.
+3. Open Tuk-Tuk from the Home Screen and enable reminders.
+
+iOS shows notifications only for apps added to the Home Screen (iOS 16.4+). Until Web Push
+(stage 6), reminders arrive only while the app is open: iOS freezes web apps in the background.
 
 ## Getting started
 
@@ -99,13 +113,14 @@ tuktukDev.reset() // back to real time
 
 ## Scripts
 
-| Command                | Description                                |
-| ---------------------- | ------------------------------------------ |
-| `npm run dev`          | Start the web app at http://localhost:5180 |
-| `npm run build`        | Type-check and build the web app           |
-| `npm test`             | Run all tests once                         |
-| `npm run test:watch`   | Run tests in watch mode                    |
-| `npm run lint`         | Lint the whole repo                        |
-| `npm run typecheck`    | Type-check every workspace                 |
-| `npm run format`       | Format with Prettier                       |
-| `npm run format:check` | Check formatting without writing           |
+| Command                        | Description                                          |
+| ------------------------------ | ---------------------------------------------------- |
+| `npm run dev`                  | Start the web app at http://localhost:5180           |
+| `npm run build`                | Type-check and build the web app                     |
+| `npm test`                     | Run all tests once                                   |
+| `npm run test:watch`           | Run tests in watch mode                              |
+| `npm run lint`                 | Lint the whole repo                                  |
+| `npm run typecheck`            | Type-check every workspace                           |
+| `npm run format`               | Format with Prettier                                 |
+| `npm run format:check`         | Check formatting without writing                     |
+| `npm run icons -w @tuktuk/web` | Regenerate PWA icons from `apps/web/public/logo.svg` |

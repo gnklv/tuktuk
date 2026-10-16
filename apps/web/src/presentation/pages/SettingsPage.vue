@@ -3,9 +3,11 @@ import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { LOCALES, THEMES, timeOfDay, type Locale, type Settings, type Theme } from '@tuktuk/core'
 import { UiButton, UiCard, UiCheckbox, UiIconButton, UiSegmentedControl, UiTimeField } from '../ui'
-import { LOCALE_NAMES, useAppI18n } from '../i18n'
+import { LOCALE_NAMES } from '@tuktuk/i18n'
+import { useAppI18n } from '../i18n'
 import { errorMessageKey } from '../i18n/errors'
 import { useSettingsStore } from '../stores/settings'
+import { useRemindersStore } from '../stores/reminders'
 import {
   deadlineFromInput,
   deadlineToInput,
@@ -17,6 +19,14 @@ type Section = 'deadline' | 'quietHours' | 'timeZone'
 
 const { t } = useAppI18n()
 const store = useSettingsStore()
+const reminders = useRemindersStore()
+
+const sendTestReminder = () =>
+  reminders.sendTest({
+    id: 'test',
+    title: t('reminders.test.title'),
+    body: t('reminders.test.body'),
+  })
 const settings = computed(() => store.settings)
 
 const error = ref<{ section: Section; message: string } | null>(null)
@@ -111,6 +121,27 @@ const errorFor = (section: Section) =>
     </UiCard>
 
     <UiCard as="section" class="settings__section">
+      <h2>{{ t('reminders.title') }}</h2>
+      <template v-if="reminders.permission === 'granted'">
+        <p class="hint">✅ {{ t('reminders.granted') }}</p>
+        <UiButton variant="secondary" @click="sendTestReminder">
+          {{ t('reminders.test.button') }}
+        </UiButton>
+      </template>
+      <template v-else-if="reminders.permission === 'default'">
+        <p class="hint">{{ t('reminders.banner.text') }}</p>
+        <UiButton @click="reminders.requestPermission">{{ t('reminders.enable') }}</UiButton>
+      </template>
+      <template v-else-if="reminders.permission === 'needs-install'">
+        <p class="hint">📲 {{ t('reminders.install.text') }}</p>
+      </template>
+      <p v-else-if="reminders.permission === 'denied'" class="hint">
+        🔕 {{ t('reminders.denied') }}
+      </p>
+      <p v-else class="hint">🔕 {{ t('reminders.unsupported') }}</p>
+    </UiCard>
+
+    <UiCard as="section" class="settings__section">
       <h2>{{ t('settings.quietHours.title') }}</h2>
       <p class="hint">{{ t('settings.quietHours.hint') }}</p>
       <UiCheckbox v-model="quietEnabled">{{ t('settings.quietHours.enabled') }}</UiCheckbox>
@@ -156,6 +187,7 @@ const errorFor = (section: Section) =>
 <style scoped>
 .settings {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 

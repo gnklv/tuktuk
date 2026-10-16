@@ -1,23 +1,21 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAppI18n } from '../i18n'
 import { localDateToDate } from '../i18n/dates'
 import { useTodayStore } from '../stores/today'
 import { useSettingsStore } from '../stores/settings'
-import { useClockTick } from '../composables/use-clock-tick'
+import { useRemindersStore } from '../stores/reminders'
 import { UiIconButton } from '../ui'
 import TaskItem from '../features/today/TaskItem.vue'
 import AddTaskForm from '../features/today/AddTaskForm.vue'
 import MoodMascot from '../features/today/MoodMascot.vue'
 import DeadlineCard from '../features/today/DeadlineCard.vue'
+import NotificationsBanner from '../features/reminders/NotificationsBanner.vue'
 
 const { t, d } = useAppI18n()
 const today = useTodayStore()
 const settingsStore = useSettingsStore()
-
-onMounted(today.load)
-useClockTick(today.tick)
+const reminders = useRemindersStore()
 </script>
 
 <template>
@@ -54,7 +52,9 @@ useClockTick(today.tick)
         :deadline="settingsStore.settings.dayDeadline"
         :done="today.done"
         :total="today.total"
+        :next-nudge-at="reminders.permission === 'granted' ? reminders.nextAt : null"
       />
+      <NotificationsBanner v-if="today.total > 0 && !today.allDone" />
     </template>
 
     <ul v-if="today.overview?.items.length" class="today__list">
@@ -76,6 +76,8 @@ useClockTick(today.tick)
 <style scoped>
 .today {
   display: grid;
+  /* minmax(0, …): long content (inputs, titles) must not widen the page on narrow phones. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 
@@ -96,7 +98,7 @@ useClockTick(today.tick)
 .today__add {
   position: sticky;
   bottom: 0;
-  padding: var(--space-3) 0 var(--space-4);
+  padding: var(--space-3) 0 max(var(--space-4), env(safe-area-inset-bottom));
   background: linear-gradient(transparent, var(--color-bg) var(--space-3));
 }
 

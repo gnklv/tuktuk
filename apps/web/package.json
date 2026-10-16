@@ -5,21 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -p tsconfig.json && vite build",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "typecheck": "vue-tsc -p tsconfig.json"
+    "typecheck": "vue-tsc -p tsconfig.json && tsc -p tsconfig.sw.json",
+    "icons": "pwa-assets-generator"
   },
   "dependencies": {
     "@fontsource-variable/nunito": "^5.3.0",
     "@tuktuk/core": "*",
+    "@tuktuk/i18n": "*",
     "pinia": "^4.1.0",
     "vue": "^3.5.44",
     "vue-i18n": "^11.4.14",
-    "vue-router": "^5.4.0"
+    "vue-router": "^5.4.0",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.10",
     "vite": "^8.3.4",
-    "vue-tsc": "^3.3.13"
+    "vite-plugin-pwa": "^2.0.0",
+    "vue-tsc": "^3.3.13",
+    "workbox-build": "^7.4.1",
+    "workbox-window": "^7.4.1"
   }
 }

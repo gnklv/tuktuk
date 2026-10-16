@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from './json-storage'
 import { LocalStorageTaskRepository } from './local-storage-task-repository'
 import { LocalStorageCompletionRepository } from './local-storage-completion-repository'
 import { LocalStorageSettingsRepository } from './local-storage-settings-repository'
+import { LocalStorageNudgeLogRepository } from './local-storage-nudge-log-repository'
 
 /** Minimal in-memory `Storage`, so these tests don't need a DOM environment. */
 class MemoryStorage implements Storage {
@@ -130,5 +131,15 @@ describe('LocalStorageSettingsRepository', () => {
   it('ignores settings with an unsupported locale', async () => {
     storage.setItem(STORAGE_KEYS.settings, JSON.stringify({ ...settings, locale: 'de' }))
     expect(await new LocalStorageSettingsRepository(storage).get()).toBeNull()
+  })
+})
+
+describe('LocalStorageNudgeLogRepository', () => {
+  it('returns null before the first save, then round-trips', async () => {
+    const repo = new LocalStorageNudgeLogRepository(storage)
+    expect(await repo.getLast()).toBeNull()
+    const entry = { date: today, at: new Date('2026-10-14T08:00:00Z'), messageId: 'calm:1' }
+    await repo.save(entry)
+    expect(await new LocalStorageNudgeLogRepository(storage).getLast()).toEqual(entry)
   })
 })
