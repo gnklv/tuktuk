@@ -50,8 +50,12 @@ function onChange(event: Event) {
   display: block;
   width: 100%;
   min-width: 0;
-  min-height: var(--tap-min);
+  /* Without the native look iOS stops centering the value: a fixed height with an equal
+     line height centers it vertically on every engine. */
+  height: var(--tap-min);
+  line-height: calc(var(--tap-min) - 2 * var(--border-width));
   padding: 0 var(--space-4);
+  text-align: center;
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
@@ -61,7 +65,9 @@ function onChange(event: Event) {
 }
 
 .ui-time-field__input::-webkit-date-and-time-value {
-  text-align: left;
+  margin: 0;
+  line-height: inherit;
+  text-align: center;
 }
 
 .ui-time-field__input:focus-visible {
