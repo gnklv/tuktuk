@@ -3,13 +3,25 @@ import { UiButton, UiCard } from '../../ui'
 import { useAppI18n } from '../../i18n'
 import { useRemindersStore } from '../../stores/reminders'
 
-/** Without notification permission the whole idea doesn't work — ask for it, kindly. */
+/**
+ * Without notifications the whole idea doesn't work. Install and enable prompts are shown always
+ * (on iOS, Safari and the installed app have separate storage, so Safari has no tasks at all);
+ * "blocked" and "unsupported" only matter when there is something to remind about.
+ */
+const { hasPending } = defineProps<{ hasPending: boolean }>()
 const { t } = useAppI18n()
 const reminders = useRemindersStore()
 </script>
 
 <template>
-  <UiCard v-if="reminders.permission !== 'granted'" class="banner">
+  <UiCard
+    v-if="
+      reminders.permission === 'default' ||
+      reminders.permission === 'needs-install' ||
+      (hasPending && reminders.permission !== 'granted')
+    "
+    class="banner"
+  >
     <template v-if="reminders.permission === 'default'">
       <p class="banner__title">🔔 {{ t('reminders.banner.title') }}</p>
       <p class="banner__text">{{ t('reminders.banner.text') }}</p>

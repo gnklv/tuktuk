@@ -10,10 +10,19 @@ import {
 
 let deps: HttpDeps
 let push: RecordingPushSender
+let deferred: Promise<unknown>[]
+/** Resolves pending `sleep()` calls — lets a test decide when the delay is over. */
+let wakeUp: () => void
 
 beforeEach(() => {
   push = new RecordingPushSender()
+  deferred = []
   deps = {
+    defer: (task) => deferred.push(task),
+    sleep: () =>
+      new Promise<void>((resolve) => {
+        wakeUp = resolve
+      }),
     allowedOrigins: 'https://gnklv.github.io,http://localhost:5180',
     vapidPublicKey: 'public-key',
     pingDatabase: async () => {},
@@ -112,6 +121,39 @@ describe('router', () => {
     expect(
       (await call('POST', '/devices/me/test-push', { auth, body: { locale: 'en' } })).status,
     ).toBe(409)
+  })
+
+  it('schedules a delayed test push and sends it after the response', async () => {
+    const auth = await register()
+    await call('PUT', '/devices/me/push-subscription', { auth, body: subscription })
+
+    const response = await call('POST', '/devices/me/test-push', {
+      auth,
+      body: { locale: 'ru', delaySeconds: 10 },
+    })
+    expect(response.status).toBe(202)
+    expect(push.sent).toHaveLength(0)
+
+    wakeUp()
+    await Promise.all(deferred)
+    expect(push.sent[0]?.payload).toEqual({ type: 'test', locale: 'ru' })
+  })
+
+  it('validates the delay and refuses to schedule without a subscription', async () => {
+    const auth = await register()
+    for (const delaySeconds of [-1, 21, 1.5, '10']) {
+      const response = await call('POST', '/devices/me/test-push', {
+        auth,
+        body: { locale: 'en', delaySeconds },
+      })
+      expect(response.status, String(delaySeconds)).toBe(400)
+    }
+    const response = await call('POST', '/devices/me/test-push', {
+      auth,
+      body: { locale: 'en', delaySeconds: 5 },
+    })
+    expect(response.status).toBe(409)
+    expect(deferred).toHaveLength(0)
   })
 
   it('reports a subscription the push service has forgotten', async () => {

@@ -67,7 +67,20 @@ async function submit() {
         :error="error"
         @update:model-value="error = null"
       />
-      <UiButton type="submit" :disabled="pending">{{ t('addTask.submit') }}</UiButton>
+      <UiButton type="submit" square :disabled="pending" :aria-label="t('addTask.submit')">
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </UiButton>
     </div>
   </form>
 </template>

@@ -41,10 +41,10 @@ export class WebPushService {
     }
   }
 
-  async sendTest(locale: Locale): Promise<void> {
+  async sendTest(locale: Locale, delaySeconds: number): Promise<void> {
     await api('/devices/me/test-push', {
       method: 'POST',
-      body: { locale },
+      body: { locale, delaySeconds },
       auth: this.auth(await this.ensureDevice()),
     })
   }

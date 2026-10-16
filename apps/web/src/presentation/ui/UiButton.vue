@@ -6,11 +6,14 @@ const {
   variant = 'primary',
   size = 'md',
   block = false,
+  square = false,
   type = 'button',
 } = defineProps<{
   variant?: Variant
   size?: Size
   block?: boolean
+  /** Square, for an icon instead of text. Pass `aria-label`. */
+  square?: boolean
   type?: 'button' | 'submit'
   disabled?: boolean
 }>()
@@ -21,7 +24,11 @@ const {
     :type="type"
     :disabled="disabled"
     class="ui-button"
-    :class="[`ui-button--${variant}`, `ui-button--${size}`, { 'ui-button--block': block }]"
+    :class="[
+      `ui-button--${variant}`,
+      `ui-button--${size}`,
+      { 'ui-button--block': block, 'ui-button--square': square },
+    ]"
   >
     <slot />
   </button>
@@ -95,6 +102,16 @@ const {
 .ui-button--lg {
   min-height: 56px;
   font-size: var(--font-size-lg);
+}
+
+.ui-button--square {
+  flex: none;
+  width: var(--tap-min);
+  padding: 0;
+}
+
+.ui-button--lg.ui-button--square {
+  width: 56px;
 }
 
 .ui-button--block {

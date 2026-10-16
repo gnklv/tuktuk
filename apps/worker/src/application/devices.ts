@@ -49,6 +49,11 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
 
     removeSubscription: (deviceId: string) => deps.subscriptions.remove(deviceId),
 
+    /** Throws `NoSubscriptionError` if the device has no push subscription. */
+    async ensureSubscription(deviceId: string): Promise<void> {
+      if (!(await deps.subscriptions.get(deviceId))) throw new NoSubscriptionError()
+    },
+
     /** Sends a test push. A subscription the push service has forgotten is cleaned up. */
     async sendTestPush(deviceId: string, locale: Locale): Promise<PushResult> {
       const subscription = await deps.subscriptions.get(deviceId)

@@ -54,7 +54,7 @@ const reminders = useRemindersStore()
         :total="today.total"
         :next-nudge-at="reminders.permission === 'granted' ? reminders.nextAt : null"
       />
-      <NotificationsBanner v-if="today.total > 0 && !today.allDone" />
+      <NotificationsBanner :has-pending="today.total > 0 && !today.allDone" />
     </template>
 
     <ul v-if="today.overview?.items.length" class="today__list">

@@ -46,7 +46,8 @@ export type PushStatus = 'unsupported' | 'off' | 'on'
 export interface PushAccess {
   status(): Promise<PushStatus>
   enable(): Promise<void>
-  sendTest(locale: Locale): Promise<void>
+  /** The server sends a push after `delaySeconds` — time to lock the phone. */
+  sendTest(locale: Locale, delaySeconds: number): Promise<void>
 }
 
 export const PushKey: InjectionKey<PushAccess> = Symbol('Push')

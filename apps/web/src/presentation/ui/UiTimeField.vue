@@ -44,6 +44,10 @@ function onChange(event: Event) {
 }
 
 .ui-time-field__input {
+  /* iOS gives time inputs a fixed intrinsic width that overflows narrow containers. */
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
   width: 100%;
   min-width: 0;
   min-height: var(--tap-min);
@@ -54,6 +58,10 @@ function onChange(event: Event) {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
+}
+
+.ui-time-field__input::-webkit-date-and-time-value {
+  text-align: left;
 }
 
 .ui-time-field__input:focus-visible {

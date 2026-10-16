@@ -21,11 +21,14 @@ const { t } = useAppI18n()
 const store = useSettingsStore()
 const reminders = useRemindersStore()
 
+/** Long enough to lock the phone: a push to an app in the foreground proves little. */
+const PUSH_TEST_DELAY_SECONDS = 10
+
 const pushTest = ref<'idle' | 'sending' | 'sent' | 'failed'>('idle')
 async function sendServerTest() {
   pushTest.value = 'sending'
   try {
-    await reminders.sendServerTest()
+    await reminders.sendServerTest(PUSH_TEST_DELAY_SECONDS)
     pushTest.value = 'sent'
   } catch (error) {
     console.warn('[push] test failed', error)
@@ -151,10 +154,10 @@ const errorFor = (section: Section) =>
         </UiButton>
         <template v-else-if="reminders.pushStatus === 'on'">
           <UiButton variant="secondary" :disabled="pushTest === 'sending'" @click="sendServerTest">
-            {{ t('reminders.push.test') }}
+            {{ t('reminders.push.test', { seconds: PUSH_TEST_DELAY_SECONDS }) }}
           </UiButton>
           <p v-if="pushTest === 'sent'" class="hint" role="status">
-            {{ t('reminders.push.testSent') }}
+            {{ t('reminders.push.testSent', { seconds: PUSH_TEST_DELAY_SECONDS }) }}
           </p>
           <p v-if="pushTest === 'failed'" class="error" role="alert">
             {{ t('reminders.push.error') }}
@@ -247,7 +250,7 @@ const errorFor = (section: Section) =>
 
 .settings__row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
   width: 100%;
 }

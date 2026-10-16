@@ -14,7 +14,13 @@ export interface HttpDeps {
   /** Throws if the database is unreachable. */
   pingDatabase(): Promise<void>
   devices: DeviceUseCases
+  /** Keeps working on `task` after the response is sent (Workers allow ~30 s). */
+  defer(task: Promise<unknown>): void
+  sleep(ms: number): Promise<void>
 }
+
+/** Delayed test pushes let you lock the phone first. Workers finish deferred work within ~30 s. */
+const MAX_TEST_DELAY_SECONDS = 20
 
 export async function handleRequest(request: Request, deps: HttpDeps): Promise<Response> {
   const cors = corsHeaders(request, deps.allowedOrigins)
@@ -57,10 +63,31 @@ async function route(request: Request, deps: HttpDeps): Promise<Response> {
       return new Response(null, { status: 204 })
     }
     if (path === '/devices/me/test-push' && method === 'POST') {
-      const { locale } = ((await readJson(request)) ?? {}) as { locale?: unknown }
+      const body = ((await readJson(request)) ?? {}) as { locale?: unknown; delaySeconds?: unknown }
+      const { locale, delaySeconds = 0 } = body
       if (typeof locale !== 'string' || !isLocale(locale)) {
         return json({ error: 'invalid_locale' }, 400)
       }
+      if (
+        typeof delaySeconds !== 'number' ||
+        !Number.isInteger(delaySeconds) ||
+        delaySeconds < 0 ||
+        delaySeconds > MAX_TEST_DELAY_SECONDS
+      ) {
+        return json({ error: 'invalid_delay' }, 400)
+      }
+
+      if (delaySeconds > 0) {
+        await deps.devices.ensureSubscription(deviceId)
+        deps.defer(
+          deps
+            .sleep(delaySeconds * 1000)
+            .then(() => deps.devices.sendTestPush(deviceId, locale))
+            .catch((error: unknown) => console.error('[push] delayed test push failed', error)),
+        )
+        return json({ result: 'scheduled' }, 202)
+      }
+
       const result = await deps.devices.sendTestPush(deviceId, locale)
       return result === 'gone' ? json({ error: 'subscription_gone' }, 410) : json({ result })
     }

@@ -6,7 +6,7 @@ import { webCryptoSecrets } from './infrastructure/web-crypto-secrets'
 import { WebPushSender } from './infrastructure/web-push-sender'
 
 export default {
-  fetch(request, env) {
+  fetch(request, env, ctx) {
     const devices = makeDeviceUseCases({
       devices: new D1DeviceRepository(env.DB),
       subscriptions: new D1SubscriptionRepository(env.DB),
@@ -26,6 +26,8 @@ export default {
         await env.DB.prepare('SELECT 1').first()
       },
       devices,
+      defer: (task) => ctx.waitUntil(task),
+      sleep: (ms) => scheduler.wait(ms),
     })
   },
 } satisfies ExportedHandler<Env>

@@ -42,8 +42,8 @@ export const en = {
       off: 'Off.',
       unsupported: 'Not available here. On iPhone, open Tuk-Tuk from the Home Screen.',
       enable: 'Enable push notifications',
-      test: 'Send a push from the server',
-      testSent: 'Sent — it should arrive in a few seconds.',
+      test: 'Send a push in {seconds} s',
+      testSent: 'Close the app or lock your phone — the push arrives in {seconds} s.',
       error: 'That didn’t work. Check your connection and try again.',
       testTitle: '🐦 Knock-knock from the server',
       testBody: 'Push works! Now I can remind you even when the app is closed.',
@@ -67,8 +67,8 @@ export const en = {
   },
   addTask: {
     label: 'New task',
-    placeholder: 'What needs doing today?',
-    habitPlaceholder: 'What do you want to do regularly?',
+    placeholder: 'What to do today?',
+    habitPlaceholder: 'What to do regularly?',
     submit: 'Add',
     kindLabel: 'Task type',
     kind: {

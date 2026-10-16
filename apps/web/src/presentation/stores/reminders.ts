@@ -56,8 +56,8 @@ export const useRemindersStore = defineStore('reminders', () => {
   }
 
   /** Asks the server to send a push — checks the whole chain end to end. */
-  async function sendServerTest() {
-    await push.sendTest(settingsStore.settings.locale)
+  async function sendServerTest(delaySeconds: number) {
+    await push.sendTest(settingsStore.settings.locale, delaySeconds)
   }
 
   /** The user can change the permission in browser settings at any time. */
