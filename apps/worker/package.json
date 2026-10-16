@@ -12,6 +12,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply tuktuk --remote"
   },
   "dependencies": {
+    "@block65/webcrypto-web-push": "^2.0.0",
     "@tuktuk/core": "*",
     "@tuktuk/i18n": "*"
   },

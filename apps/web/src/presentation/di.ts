@@ -1,6 +1,7 @@
 import { inject, type InjectionKey } from 'vue'
 import type {
   Clock,
+  Locale,
   NudgeMessage,
   Settings,
   makeAddTask,
@@ -39,6 +40,16 @@ export const ClockKey: InjectionKey<Clock> = Symbol('Clock')
 export const UseCasesKey: InjectionKey<AppUseCases> = Symbol('UseCases')
 /** Settings loaded before mount, so the UI never sees "no settings yet". */
 export const InitialSettingsKey: InjectionKey<Settings> = Symbol('InitialSettings')
+export type PushStatus = 'unsupported' | 'off' | 'on'
+
+/** Web Push via the server: reminders even when the app is closed. */
+export interface PushAccess {
+  status(): Promise<PushStatus>
+  enable(): Promise<void>
+  sendTest(locale: Locale): Promise<void>
+}
+
+export const PushKey: InjectionKey<PushAccess> = Symbol('Push')
 export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol('Notifications')
 
 function injectStrict<T>(key: InjectionKey<T>): T {
@@ -53,3 +64,4 @@ export const useClock = (): Clock => injectStrict(ClockKey)
 export const useUseCases = (): AppUseCases => injectStrict(UseCasesKey)
 export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKey)
 export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)
+export const usePush = (): PushAccess => injectStrict(PushKey)

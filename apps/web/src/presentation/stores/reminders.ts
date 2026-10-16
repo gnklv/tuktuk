@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import type { NudgeMessage } from '@tuktuk/core'
-import { useNotifications, useUseCases } from '../di'
+import { useNotifications, usePush, useUseCases, type PushStatus } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */
@@ -12,6 +12,7 @@ const userIsLooking = () =>
 export const useRemindersStore = defineStore('reminders', () => {
   const useCases = useUseCases()
   const notifications = useNotifications()
+  const push = usePush()
   const settingsStore = useSettingsStore()
 
   const permission = shallowRef(notifications.permission())
@@ -33,6 +34,30 @@ export const useRemindersStore = defineStore('reminders', () => {
 
   async function requestPermission() {
     permission.value = await notifications.requestPermission()
+    await syncPush()
+  }
+
+  const pushStatus = shallowRef<PushStatus>('off')
+
+  /**
+   * With notification permission, make sure the server has this device's push subscription.
+   * Runs on start too: subscriptions can expire or be dropped by the browser.
+   */
+  async function syncPush() {
+    try {
+      pushStatus.value = await push.status()
+      if (permission.value === 'granted' && pushStatus.value === 'off') {
+        await push.enable()
+        pushStatus.value = 'on'
+      }
+    } catch (error) {
+      console.warn('[push] could not enable push', error)
+    }
+  }
+
+  /** Asks the server to send a push — checks the whole chain end to end. */
+  async function sendServerTest() {
+    await push.sendTest(settingsStore.settings.locale)
   }
 
   /** The user can change the permission in browser settings at any time. */
@@ -42,5 +67,15 @@ export const useRemindersStore = defineStore('reminders', () => {
 
   const sendTest = (message: NudgeMessage) => notifications.show(message)
 
-  return { permission, nextAt, check, requestPermission, refreshPermission, sendTest }
+  return {
+    permission,
+    pushStatus,
+    nextAt,
+    check,
+    requestPermission,
+    refreshPermission,
+    syncPush,
+    sendTest,
+    sendServerTest,
+  }
 })

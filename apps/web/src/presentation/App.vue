@@ -13,7 +13,10 @@ const todayStore = useTodayStore()
 const reminders = useRemindersStore()
 
 // App-wide, so reminders keep coming on any screen.
-onMounted(todayStore.load)
+onMounted(() => {
+  void todayStore.load()
+  void reminders.syncPush()
+})
 useClockTick(async () => {
   await todayStore.tick()
   reminders.refreshPermission()

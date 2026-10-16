@@ -15,5 +15,9 @@
   "vars": {
     // Origins allowed to call the API (the PWA in production and in dev).
     "ALLOWED_ORIGINS": "https://gnklv.github.io,http://localhost:5180",
+    // Web Push (VAPID). The private key is a secret: `wrangler secret put VAPID_PRIVATE_KEY`,
+    // and `.dev.vars` for local dev. The subject is a contact URL push services may use.
+    "VAPID_PUBLIC_KEY": "BOOdQgk5TD7rIysFWkigFHla2cuCvKVZPIiK_rIgZ2Iv7kzUWnr0sP48f8zJ03F6PEjl5kbFp33LOE9oz54G6cE",
+    "VAPID_SUBJECT": "https://gnklv.github.io/tuktuk/",
   },
 }

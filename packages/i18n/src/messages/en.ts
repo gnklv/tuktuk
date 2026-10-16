@@ -36,6 +36,18 @@ export const en = {
       text: 'On iPhone, reminders only work for apps on the Home Screen. Tap Share at the bottom of Safari, then “Add to Home Screen”, and open Tuk-Tuk from there.',
     },
     next: 'next reminder at {time}',
+    push: {
+      title: 'Push notifications',
+      on: 'On: the server can notify you even when the app is closed.',
+      off: 'Off.',
+      unsupported: 'Not available here. On iPhone, open Tuk-Tuk from the Home Screen.',
+      enable: 'Enable push notifications',
+      test: 'Send a push from the server',
+      testSent: 'Sent — it should arrive in a few seconds.',
+      error: 'That didn’t work. Check your connection and try again.',
+      testTitle: '🐦 Knock-knock from the server',
+      testBody: 'Push works! Now I can remind you even when the app is closed.',
+    },
     test: {
       button: 'Send a test reminder',
       title: '🐦 Knock-knock',

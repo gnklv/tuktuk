@@ -17,6 +17,7 @@ import {
   ClockKey,
   InitialSettingsKey,
   NotificationsKey,
+  PushKey,
   UseCasesKey,
   type AppUseCases,
 } from './presentation/di'
@@ -27,6 +28,7 @@ import { createDevClock } from './infrastructure/dev-clock'
 import { cryptoIdGenerator } from './infrastructure/crypto-id-generator'
 import { browserEnvironment } from './infrastructure/browser-environment'
 import { BrowserNotifier } from './infrastructure/browser-notifier'
+import { WebPushService } from './infrastructure/push/web-push-service'
 import { LocalStorageTaskRepository } from './infrastructure/storage/local-storage-task-repository'
 import { LocalStorageCompletionRepository } from './infrastructure/storage/local-storage-completion-repository'
 import { LocalStorageSettingsRepository } from './infrastructure/storage/local-storage-settings-repository'
@@ -39,6 +41,7 @@ const completionRepo = new LocalStorageCompletionRepository(localStorage)
 const settingsRepo = new LocalStorageSettingsRepository(localStorage)
 const nudgeLog = new LocalStorageNudgeLogRepository(localStorage)
 const notifier = new BrowserNotifier()
+const push = new WebPushService(localStorage)
 
 const updateSettings = makeUpdateSettings({ settingsRepo })
 const useCases: AppUseCases = {
@@ -65,6 +68,7 @@ createApp(App)
   .provide(UseCasesKey, useCases)
   .provide(InitialSettingsKey, settings)
   .provide(NotificationsKey, notifier)
+  .provide(PushKey, push)
   .use(createPinia())
   .use(createAppI18n(settings.locale))
   .use(createAppRouter())

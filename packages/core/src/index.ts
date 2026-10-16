@@ -53,6 +53,10 @@ export type { SettingsRepository } from './application/ports/settings-repository
 export type { Notifier } from './application/ports/notifier'
 export type { NudgeLogRepository, NudgeLogEntry } from './application/ports/nudge-log-repository'
 
+// Application: push protocol shared by the server and the Service Worker
+export { parsePushPayload } from './application/push-payload'
+export type { PushPayload } from './application/push-payload'
+
 // Application use cases
 export { makeAddTask } from './application/use-cases/add-task'
 export { makeArchiveTask } from './application/use-cases/archive-task'

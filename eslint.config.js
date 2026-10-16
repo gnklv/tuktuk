@@ -26,12 +26,21 @@ const notPresentation = {
   message: 'Infrastructure must not depend on presentation.',
 }
 
+const notHttp = {
+  group: ['**/http/**', '**/http'],
+  message: 'Only the composition root and the http layer know about HTTP.',
+}
+
 const boundaries = [
   { files: ['packages/core/src/domain/**'], rules: restrict(frameworkFree, notApplication) },
   { files: ['packages/core/src/application/**'], rules: restrict(frameworkFree) },
   { files: ['packages/i18n/src/**'], rules: restrict(frameworkFree) },
   { files: ['apps/web/src/presentation/**'], rules: restrict(notInfrastructure) },
   { files: ['apps/web/src/infrastructure/**'], rules: restrict(notPresentation) },
+  // Worker: http is its presentation layer.
+  { files: ['apps/worker/src/application/**'], rules: restrict(notInfrastructure, notHttp) },
+  { files: ['apps/worker/src/http/**'], rules: restrict(notInfrastructure) },
+  { files: ['apps/worker/src/infrastructure/**'], rules: restrict(notHttp) },
 ]
 
 export default tseslint.config(

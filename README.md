@@ -76,7 +76,7 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 - 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
 - [ ] **4. Streak** — a day counts when all required tasks are done, day summary
 - [x] **5. PWA** — manifest, icons, offline via Service Worker, notifications through the Service Worker, iOS "Add to Home Screen" onboarding, safe areas
-- [ ] **6. Push server** — Cloudflare Worker: snapshot sync, cron, Web Push, "Done" action
+- [ ] **6. Push server** — Cloudflare Worker + D1 ✅, device registration and push subscription ✅, snapshot sync, cron, "Done" action
 - 🏁 **MVP** — reminders reach the phone while the app is closed, streak keeps you coming back
 - [ ] **7. XP & levels** — XP with early-finish multiplier, levels
 - [ ] **8. Telegram bot** — second reminder channel: account linking, inline "Done" / "Later" buttons
@@ -91,6 +91,16 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 
 iOS shows notifications only for apps added to the Home Screen (iOS 16.4+). Until Web Push
 (stage 6), reminders arrive only while the app is open: iOS freezes web apps in the background.
+
+## Push server
+
+`apps/worker` is a Cloudflare Worker with a D1 database. There are no accounts: each installed app
+registers as a device and gets a random token (the server stores only its SHA-256). The server never
+receives task titles — the Service Worker composes notification texts on the device.
+
+Web Push uses VAPID keys. The public key is in `apps/worker/wrangler.jsonc`, the private one is a
+Cloudflare secret (`VAPID_PRIVATE_KEY`) and, for local development, lives in `apps/worker/.dev.vars`
+(git-ignored). Rotating the keys invalidates all existing push subscriptions.
 
 ## Getting started
 

@@ -21,6 +21,18 @@ const { t } = useAppI18n()
 const store = useSettingsStore()
 const reminders = useRemindersStore()
 
+const pushTest = ref<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+async function sendServerTest() {
+  pushTest.value = 'sending'
+  try {
+    await reminders.sendServerTest()
+    pushTest.value = 'sent'
+  } catch (error) {
+    console.warn('[push] test failed', error)
+    pushTest.value = 'failed'
+  }
+}
+
 const sendTestReminder = () =>
   reminders.sendTest({
     id: 'test',
@@ -127,6 +139,27 @@ const errorFor = (section: Section) =>
         <UiButton variant="secondary" @click="sendTestReminder">
           {{ t('reminders.test.button') }}
         </UiButton>
+
+        <h3 class="settings__subtitle">{{ t('reminders.push.title') }}</h3>
+        <p class="hint">{{ t(`reminders.push.${reminders.pushStatus}`) }}</p>
+        <UiButton
+          v-if="reminders.pushStatus === 'off'"
+          variant="secondary"
+          @click="reminders.syncPush"
+        >
+          {{ t('reminders.push.enable') }}
+        </UiButton>
+        <template v-else-if="reminders.pushStatus === 'on'">
+          <UiButton variant="secondary" :disabled="pushTest === 'sending'" @click="sendServerTest">
+            {{ t('reminders.push.test') }}
+          </UiButton>
+          <p v-if="pushTest === 'sent'" class="hint" role="status">
+            {{ t('reminders.push.testSent') }}
+          </p>
+          <p v-if="pushTest === 'failed'" class="error" role="alert">
+            {{ t('reminders.push.error') }}
+          </p>
+        </template>
       </template>
       <template v-else-if="reminders.permission === 'default'">
         <p class="hint">{{ t('reminders.banner.text') }}</p>
@@ -217,6 +250,11 @@ const errorFor = (section: Section) =>
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
   width: 100%;
+}
+
+.settings__subtitle {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-md);
 }
 
 .settings__value {
