@@ -97,6 +97,41 @@ describe('LocalStorageTaskRepository', () => {
     expect(tasks.map((t) => t.id)).toEqual(['ok'])
   })
 
+  it('heals: broken records are moved aside once, with one warning', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    const valid = {
+      id: 'ok',
+      title: 'Valid',
+      schedule: { kind: 'once', date: today },
+      required: true,
+      createdAt: '2026-10-14T09:00:00.000Z',
+      activeFrom: today,
+    }
+    const broken = { ...valid, id: 'bad', schedule: { kind: 'weekly', weekdays: [0] } }
+    storage.setItem(STORAGE_KEYS.tasks, JSON.stringify([valid, broken]))
+    const repo = new LocalStorageTaskRepository(storage)
+
+    await repo.getAll()
+    await repo.getAll()
+    await repo.getAll()
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(JSON.parse(storage.getItem(STORAGE_KEYS.tasks)!)).toEqual([valid])
+    const dropped = JSON.parse(storage.getItem(`${STORAGE_KEYS.tasks}:dropped`)!)
+    expect(dropped).toHaveLength(1)
+    expect(dropped[0].item).toEqual(broken)
+  })
+
+  it('heals unreadable JSON by moving it aside', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    storage.setItem(STORAGE_KEYS.tasks, '{not json')
+    const repo = new LocalStorageTaskRepository(storage)
+    expect(await repo.getAll()).toEqual([])
+    expect(await repo.getAll()).toEqual([])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(storage.getItem(`${STORAGE_KEYS.tasks}:dropped`)).toBe('{not json')
+  })
+
   it('survives corrupted storage', async () => {
     storage.setItem(STORAGE_KEYS.tasks, '{not json')
     expect(await new LocalStorageTaskRepository(storage).getAll()).toEqual([])

@@ -5,7 +5,7 @@ import {
   type LocalDate,
   type TaskId,
 } from '@tuktuk/core'
-import { STORAGE_KEYS, parseList, readJson, writeJson } from './json-storage'
+import { STORAGE_KEYS, readList, writeJson } from './json-storage'
 
 interface CompletionDto {
   taskId: string
@@ -34,7 +34,7 @@ export class LocalStorageCompletionRepository implements CompletionRepository {
   constructor(private readonly storage: Storage) {}
 
   private all(): Completion[] {
-    return parseList(readJson(this.storage, this.key), this.key, fromDto)
+    return readList(this.storage, this.key, fromDto)
   }
 
   private write(completions: Completion[]): void {

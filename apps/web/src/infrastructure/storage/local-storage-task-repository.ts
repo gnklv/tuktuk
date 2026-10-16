@@ -5,7 +5,7 @@ import {
   type TaskRepository,
   type TaskSchedule,
 } from '@tuktuk/core'
-import { STORAGE_KEYS, parseList, readJson, writeJson } from './json-storage'
+import { STORAGE_KEYS, readList, writeJson } from './json-storage'
 
 interface TaskDto {
   id: string
@@ -49,7 +49,7 @@ export class LocalStorageTaskRepository implements TaskRepository {
   constructor(private readonly storage: Storage) {}
 
   async getAll(): Promise<Task[]> {
-    return parseList(readJson(this.storage, this.key), this.key, fromDto)
+    return readList(this.storage, this.key, fromDto)
   }
 
   async getById(id: TaskId): Promise<Task | null> {
