@@ -1,66 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch, watchEffect } from 'vue'
 import { RouterView } from 'vue-router'
-import { useAppI18n } from './i18n'
-import { useSettingsStore } from './stores/settings'
-import { useTodayStore } from './stores/today'
-import { useRemindersStore } from './stores/reminders'
-import { useClockTick } from './composables/use-clock-tick'
+import { useAppLifecycle } from './composables/use-app-lifecycle'
+import { useDocumentSync } from './composables/use-document-sync'
 
-const { t, locale } = useAppI18n()
-const settingsStore = useSettingsStore()
-const todayStore = useTodayStore()
-const reminders = useRemindersStore()
-
-// App-wide, so reminders keep coming on any screen.
-onMounted(() => {
-  void todayStore.load()
-  void reminders.syncPush()
-})
-useClockTick(async () => {
-  await todayStore.tick()
-  reminders.refreshPermission()
-  await reminders.check()
-  // A safety net: if a sync was lost, it goes out now (unchanged snapshots are not resent).
-  reminders.syncSnapshot()
-})
-
-// Leaving the app (switching away, locking the phone): send pending changes right now —
-// iOS freezes the app before a debounced sync would fire.
-function onHide() {
-  if (document.visibilityState === 'hidden') reminders.flushSnapshot()
-}
-onMounted(() => {
-  document.addEventListener('visibilitychange', onHide)
-  window.addEventListener('pagehide', reminders.flushSnapshot)
-})
-onUnmounted(() => {
-  document.removeEventListener('visibilitychange', onHide)
-  window.removeEventListener('pagehide', reminders.flushSnapshot)
-})
-// Tasks or settings changed → the next reminder may be due earlier, later or not at all.
-watch([() => todayStore.overview, () => settingsStore.settings], () => {
-  void reminders.check()
-  // The server's copy too: it reminds while the app is closed.
-  reminders.syncSnapshot()
-})
-
-watchEffect(() => {
-  locale.value = settingsStore.settings.locale
-  document.documentElement.lang = locale.value
-  document.title = t('app.name')
-})
-
-// The whole UI "heats up" towards the deadline: tokens.css derives colors from --pressure.
-watchEffect(() => {
-  document.documentElement.style.setProperty('--pressure', String(todayStore.pressure.value))
-})
-
-watchEffect(() => {
-  const { theme } = settingsStore.settings
-  if (theme === 'system') delete document.documentElement.dataset.theme
-  else document.documentElement.dataset.theme = theme
-})
+useAppLifecycle()
+useDocumentSync()
 </script>
 
 <template>
