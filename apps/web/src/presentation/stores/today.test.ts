@@ -1,29 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createApp, type App } from 'vue'
 import { createPinia } from 'pinia'
-import {
-  createDefaultSettings,
-  makeAddTask,
-  makeArchiveTask,
-  makeCheckNudge,
-  makeGetReminderSnapshot,
-  makeGetPendingTitles,
-  makeGetStreak,
-  makeGetDayOverview,
-  makeToggleCompletion,
-  makeUpdateSettings,
-} from '@tuktuk/core'
-import {
-  InMemoryCompletionRepository,
-  InMemoryNudgeLog,
-  InMemorySettingsRepository,
-  InMemoryTaskRepository,
-  RecordingNotifier,
-  fakeNudgeCopy,
-  fakeClock,
-  sequentialIds,
-} from '@tuktuk/core/testing'
-import { ClockKey, InitialSettingsKey, UseCasesKey, type AppUseCases } from '../di'
+import { createDefaultSettings } from '@tuktuk/core'
+import { fakeClock } from '@tuktuk/core/testing'
+import { createTestUseCases } from '../../testing/use-cases'
+import { ClockKey, InitialSettingsKey, UseCasesKey } from '../di'
 import { useTodayStore } from './today'
 
 const env = { locale: 'ru', timeZone: 'Europe/Moscow' } as const
@@ -34,31 +15,7 @@ let clock: ReturnType<typeof fakeClock>
 beforeEach(() => {
   // 22:00 in Moscow (UTC+3)
   clock = fakeClock('2026-10-14T19:00:00Z')
-  const taskRepo = new InMemoryTaskRepository()
-  const completionRepo = new InMemoryCompletionRepository()
-  const settingsRepo = new InMemorySettingsRepository()
-  const useCases: AppUseCases = {
-    addTask: makeAddTask({ taskRepo, ids: sequentialIds(), clock }),
-    archiveTask: makeArchiveTask({ taskRepo }),
-    toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
-    getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
-    updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
-    getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
-    getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
-    getStreak: makeGetStreak({ taskRepo, completionRepo }),
-    // Not used by the today store.
-    syncReminders: async () => 'unchanged',
-    syncPush: async () => 'off',
-    checkNudge: makeCheckNudge({
-      clock,
-      taskRepo,
-      completionRepo,
-      nudgeLog: new InMemoryNudgeLog(),
-      notifier: new RecordingNotifier(),
-      copy: fakeNudgeCopy,
-      random: () => 0,
-    }),
-  }
+  const { useCases } = createTestUseCases({ clock })
   app = createApp({})
     .provide(ClockKey, clock)
     .provide(UseCasesKey, useCases)

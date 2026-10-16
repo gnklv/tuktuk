@@ -1,22 +1,11 @@
 // Composition root: the only place that knows about concrete implementations.
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import {
-  makeAddTask,
-  makeArchiveTask,
-  makeCheckNudge,
-  makeGetReminderSnapshot,
-  makeGetPendingTitles,
-  makeGetStreak,
-  makeGetDayOverview,
-  makeGetSettings,
-  makeToggleCompletion,
-  makeUpdateSettings,
-} from '@tuktuk/core'
+import { makeGetSettings } from '@tuktuk/core'
 import { nudgeCopy } from '@tuktuk/i18n'
 import './presentation/ui'
 import App from './presentation/App.vue'
-import { makeSyncPush, makeSyncReminders } from './application/reminders'
+import { createUseCases } from './application/use-cases'
 import {
   ClockKey,
   InitialSettingsKey,
@@ -24,7 +13,6 @@ import {
   UiPrefsKey,
   EnvironmentKey,
   UseCasesKey,
-  type AppUseCases,
 } from './presentation/di'
 import { createAppI18n } from './presentation/i18n'
 import { createAppRouter } from './presentation/router'
@@ -48,7 +36,6 @@ const env = browserEnvironment()
 const taskRepo = new LocalStorageTaskRepository(localStorage)
 const completionRepo = new LocalStorageCompletionRepository(localStorage)
 const settingsRepo = new LocalStorageSettingsRepository(localStorage)
-const nudgeLog = new LocalStorageNudgeLogRepository(localStorage)
 const notifier = new BrowserNotifier()
 /** Push server: production by default, a local `wrangler dev` in development. */
 const apiUrl: string =
@@ -60,36 +47,20 @@ const push = new WebPushService({
   registration: browserPushRegistration,
 })
 
-const updateSettings = makeUpdateSettings({ settingsRepo })
-const getPendingTitles = makeGetPendingTitles({ taskRepo, completionRepo })
-const getReminderSnapshot = makeGetReminderSnapshot({ taskRepo, completionRepo })
-const useCases: AppUseCases = {
-  addTask: makeAddTask({ taskRepo, ids: cryptoIdGenerator, clock }),
-  archiveTask: makeArchiveTask({ taskRepo }),
-  toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
-  getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
-  updateSettings: (patch) => updateSettings(patch, env),
-  getReminderSnapshot,
-  getPendingTitles,
-  getStreak: makeGetStreak({ taskRepo, completionRepo }),
-  syncReminders: makeSyncReminders({
-    clock,
-    getPendingTitles,
-    getReminderSnapshot,
-    localTitles: new IndexedDbReminderTitles(),
-    push,
-  }),
-  syncPush: makeSyncPush({ push }),
-  checkNudge: makeCheckNudge({
-    clock,
-    taskRepo,
-    completionRepo,
-    nudgeLog,
-    notifier,
-    copy: nudgeCopy,
-    random: Math.random,
-  }),
-}
+const useCases = createUseCases({
+  clock,
+  ids: cryptoIdGenerator,
+  environment: env,
+  taskRepo,
+  completionRepo,
+  settingsRepo,
+  nudgeLog: new LocalStorageNudgeLogRepository(localStorage),
+  notifier,
+  localTitles: new IndexedDbReminderTitles(),
+  push,
+  copy: nudgeCopy,
+  random: Math.random,
+})
 
 const settings = await makeGetSettings({ settingsRepo })(env)
 

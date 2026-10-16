@@ -1,34 +1,9 @@
 import { inject, type InjectionKey } from 'vue'
-import type {
-  Clock,
-  Settings,
-  SettingsEnvironment,
-  makeAddTask,
-  makeCheckNudge,
-  makeGetReminderSnapshot,
-  makeGetPendingTitles,
-  makeGetStreak,
-  makeArchiveTask,
-  makeGetDayOverview,
-  makeToggleCompletion,
-} from '@tuktuk/core'
+import type { Clock, Settings, SettingsEnvironment } from '@tuktuk/core'
 import type { NotificationAccess, UiPrefs } from '../application/ports'
-import type { makeSyncPush, makeSyncReminders } from '../application/reminders'
+import type { AppUseCases } from '../application/use-cases'
 
-/** Use cases with all their dependencies already bound in the composition root. */
-export interface AppUseCases {
-  addTask: ReturnType<typeof makeAddTask>
-  archiveTask: ReturnType<typeof makeArchiveTask>
-  toggleCompletion: ReturnType<typeof makeToggleCompletion>
-  getDayOverview: ReturnType<typeof makeGetDayOverview>
-  updateSettings: (patch: Partial<Settings>) => Promise<Settings>
-  checkNudge: ReturnType<typeof makeCheckNudge>
-  getReminderSnapshot: ReturnType<typeof makeGetReminderSnapshot>
-  getPendingTitles: ReturnType<typeof makeGetPendingTitles>
-  getStreak: ReturnType<typeof makeGetStreak>
-  syncReminders: ReturnType<typeof makeSyncReminders>
-  syncPush: ReturnType<typeof makeSyncPush>
-}
+export type { AppUseCases }
 
 // Symbol.for: the same key survives hot module reloads of this file in dev.
 export const ClockKey: InjectionKey<Clock> = Symbol.for('tuktuk:Clock')

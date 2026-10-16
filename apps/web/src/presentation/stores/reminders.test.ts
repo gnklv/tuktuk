@@ -3,29 +3,11 @@ import { createApp, type App } from 'vue'
 import { createPinia } from 'pinia'
 import {
   createDefaultSettings,
-  makeAddTask,
-  makeArchiveTask,
-  makeCheckNudge,
-  makeGetDayOverview,
-  makeGetReminderSnapshot,
-  makeGetPendingTitles,
-  makeGetStreak,
-  makeToggleCompletion,
-  makeUpdateSettings,
   type LocalDate,
   type PendingTitles,
   type ReminderSnapshot,
 } from '@tuktuk/core'
-import {
-  InMemoryCompletionRepository,
-  InMemoryNudgeLog,
-  InMemorySettingsRepository,
-  InMemoryTaskRepository,
-  RecordingNotifier,
-  fakeClock,
-  fakeNudgeCopy,
-  sequentialIds,
-} from '@tuktuk/core/testing'
+import { RecordingNotifier, fakeClock } from '@tuktuk/core/testing'
 import {
   ClockKey,
   InitialSettingsKey,
@@ -33,8 +15,7 @@ import {
   UseCasesKey,
   type AppUseCases,
 } from '../di'
-import type { PushAccess } from '../../application/ports'
-import { makeSyncPush, makeSyncReminders } from '../../application/reminders'
+import { FakePush, createTestUseCases } from '../../testing/use-cases'
 import { useRemindersStore } from './reminders'
 
 const env = { locale: 'ru', timeZone: 'Europe/Moscow' } as const
@@ -45,58 +26,17 @@ let useCases: AppUseCases
 let sent: ReminderSnapshot[]
 let localTitles: PendingTitles[]
 let notifier: RecordingNotifier
-let pushOn: boolean
+let push: FakePush
 
 beforeEach(() => {
   vi.useFakeTimers()
   const clock = fakeClock('2026-10-17T09:00:00Z')
-  const taskRepo = new InMemoryTaskRepository()
-  const completionRepo = new InMemoryCompletionRepository()
-  const settingsRepo = new InMemorySettingsRepository()
   notifier = new RecordingNotifier()
-  pushOn = true
-  sent = []
-  localTitles = []
-  const push: PushAccess = {
-    status: async () => (pushOn ? 'on' : 'off'),
-    enable: async () => {},
-    syncSnapshot: async (snapshot) => {
-      sent.push(snapshot)
-    },
-  }
-  const getPendingTitles = makeGetPendingTitles({ taskRepo, completionRepo })
-  const getReminderSnapshot = makeGetReminderSnapshot({ taskRepo, completionRepo })
-  useCases = {
-    addTask: makeAddTask({ taskRepo, ids: sequentialIds(), clock }),
-    archiveTask: makeArchiveTask({ taskRepo }),
-    toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
-    getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
-    updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
-    getReminderSnapshot,
-    getPendingTitles,
-    getStreak: makeGetStreak({ taskRepo, completionRepo }),
-    checkNudge: makeCheckNudge({
-      clock,
-      taskRepo,
-      completionRepo,
-      nudgeLog: new InMemoryNudgeLog(),
-      notifier,
-      copy: fakeNudgeCopy,
-      random: () => 0,
-    }),
-    syncReminders: makeSyncReminders({
-      clock,
-      getPendingTitles,
-      getReminderSnapshot,
-      localTitles: {
-        save: async (titles) => {
-          localTitles.push(titles)
-        },
-      },
-      push,
-    }),
-    syncPush: makeSyncPush({ push }),
-  }
+  push = new FakePush('on')
+  const created = createTestUseCases({ clock, notifier, push })
+  useCases = created.useCases
+  sent = push.snapshots
+  localTitles = created.savedTitles
   app = createApp({})
     .provide(ClockKey, clock)
     .provide(UseCasesKey, useCases)
@@ -168,7 +108,7 @@ describe('reminders store: delivery', () => {
   })
 
   it('without push, the tab shows the notification itself', async () => {
-    pushOn = false
+    push.current = 'off'
     const store = useStore()
     store.permission = 'denied' // keeps syncPush from enabling push
     await store.syncPush()
