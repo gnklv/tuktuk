@@ -46,6 +46,9 @@ beforeEach(() => {
     getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
     getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
     getStreak: makeGetStreak({ taskRepo, completionRepo }),
+    // Not used by the today store.
+    syncReminders: async () => 'unchanged',
+    syncPush: async () => 'off',
     checkNudge: makeCheckNudge({
       clock,
       taskRepo,

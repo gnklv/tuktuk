@@ -29,13 +29,13 @@ import {
 import {
   ClockKey,
   InitialSettingsKey,
-  LocalTitlesKey,
   NotificationsKey,
   PushKey,
   UseCasesKey,
   type AppUseCases,
 } from '../di'
 import type { PushAccess } from '../../application/ports'
+import { makeSyncPush, makeSyncReminders } from '../../application/reminders'
 import { useRemindersStore } from './reminders'
 
 const env = { locale: 'ru', timeZone: 'Europe/Moscow' } as const
@@ -56,14 +56,26 @@ beforeEach(() => {
   const settingsRepo = new InMemorySettingsRepository()
   notifier = new RecordingNotifier()
   pushOn = true
+  sent = []
+  localTitles = []
+  const push: PushAccess = {
+    status: async () => (pushOn ? 'on' : 'off'),
+    enable: async () => {},
+    sendTest: async () => {},
+    syncSnapshot: async (snapshot) => {
+      sent.push(snapshot)
+    },
+  }
+  const getPendingTitles = makeGetPendingTitles({ taskRepo, completionRepo })
+  const getReminderSnapshot = makeGetReminderSnapshot({ taskRepo, completionRepo })
   useCases = {
     addTask: makeAddTask({ taskRepo, ids: sequentialIds(), clock }),
     archiveTask: makeArchiveTask({ taskRepo }),
     toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
     getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
     updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
-    getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
-    getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
+    getReminderSnapshot,
+    getPendingTitles,
     getStreak: makeGetStreak({ taskRepo, completionRepo }),
     checkNudge: makeCheckNudge({
       clock,
@@ -74,16 +86,18 @@ beforeEach(() => {
       copy: fakeNudgeCopy,
       random: () => 0,
     }),
-  }
-  sent = []
-  localTitles = []
-  const push: PushAccess = {
-    status: async () => (pushOn ? 'on' : 'off'),
-    enable: async () => {},
-    sendTest: async () => {},
-    syncSnapshot: async (snapshot) => {
-      sent.push(snapshot)
-    },
+    syncReminders: makeSyncReminders({
+      clock,
+      getPendingTitles,
+      getReminderSnapshot,
+      localTitles: {
+        save: async (titles) => {
+          localTitles.push(titles)
+        },
+      },
+      push,
+    }),
+    syncPush: makeSyncPush({ push }),
   }
   app = createApp({})
     .provide(ClockKey, clock)
@@ -95,11 +109,6 @@ beforeEach(() => {
       show: async () => {},
     })
     .provide(PushKey, push)
-    .provide(LocalTitlesKey, {
-      save: async (titles) => {
-        localTitles.push(titles)
-      },
-    })
     .use(createPinia())
 })
 

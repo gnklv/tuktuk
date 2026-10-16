@@ -16,12 +16,12 @@ import {
 import { nudgeCopy } from '@tuktuk/i18n'
 import './presentation/ui'
 import App from './presentation/App.vue'
+import { makeSyncPush, makeSyncReminders } from './application/reminders'
 import {
   ClockKey,
   InitialSettingsKey,
   NotificationsKey,
   PushKey,
-  LocalTitlesKey,
   UiPrefsKey,
   UseCasesKey,
   type AppUseCases,
@@ -61,15 +61,25 @@ const push = new WebPushService({
 })
 
 const updateSettings = makeUpdateSettings({ settingsRepo })
+const getPendingTitles = makeGetPendingTitles({ taskRepo, completionRepo })
+const getReminderSnapshot = makeGetReminderSnapshot({ taskRepo, completionRepo })
 const useCases: AppUseCases = {
   addTask: makeAddTask({ taskRepo, ids: cryptoIdGenerator, clock }),
   archiveTask: makeArchiveTask({ taskRepo }),
   toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
   getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
   updateSettings: (patch) => updateSettings(patch, env),
-  getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
-  getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
+  getReminderSnapshot,
+  getPendingTitles,
   getStreak: makeGetStreak({ taskRepo, completionRepo }),
+  syncReminders: makeSyncReminders({
+    clock,
+    getPendingTitles,
+    getReminderSnapshot,
+    localTitles: new IndexedDbReminderTitles(),
+    push,
+  }),
+  syncPush: makeSyncPush({ push }),
   checkNudge: makeCheckNudge({
     clock,
     taskRepo,
@@ -89,7 +99,6 @@ createApp(App)
   .provide(InitialSettingsKey, settings)
   .provide(NotificationsKey, notifier)
   .provide(PushKey, push)
-  .provide(LocalTitlesKey, new IndexedDbReminderTitles())
   .provide(UiPrefsKey, new LocalStorageUiPrefs(localStorage))
   .use(createPinia())
   .use(createAppI18n(settings.locale))

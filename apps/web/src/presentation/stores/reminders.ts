@@ -1,30 +1,32 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import { toLocalDate, type NudgeDelivery, type NudgeMessage } from '@tuktuk/core'
+import type { NudgeMessage } from '@tuktuk/core'
 import type { PushStatus } from '../../application/ports'
-import { useClock, useLocalTitles, useNotifications, usePush, useUseCases } from '../di'
+import { tabDelivery } from '../../application/reminders'
+import { useNotifications, usePush, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */
 const userIsLooking = () =>
   typeof document !== 'undefined' && document.visibilityState === 'visible' && document.hasFocus()
 
-/** With push on, the server delivers reminders; the tab only keeps its schedule for the UI. */
-const tabDelivery = (pushOn: boolean): NudgeDelivery =>
-  pushOn || userIsLooking() ? 'silent' : 'notify'
+/** Waits a moment so a burst of changes (ticking off three tasks) becomes one request. */
+const SNAPSHOT_DEBOUNCE_MS = 1000
 
-/** In-tab reminder scheduler: `check()` is called every minute and whenever the day changes. */
+/**
+ * Reminders as the UI sees them: permission and push status, the next reminder time, and
+ * the timing of syncs. The rules live in the application layer (`application/reminders.ts`).
+ */
 export const useRemindersStore = defineStore('reminders', () => {
   const useCases = useUseCases()
   const notifications = useNotifications()
   const push = usePush()
-  const localTitles = useLocalTitles()
-  const clock = useClock()
   const settingsStore = useSettingsStore()
 
   const permission = shallowRef(notifications.permission())
   const pushStatus = shallowRef<PushStatus>('off')
   const nextAt = shallowRef<Date | null>(null)
+
   let checking: Promise<void> | null = null
 
   /** Idempotent and serialized: overlapping calls share one run, so nothing is sent twice. */
@@ -32,7 +34,7 @@ export const useRemindersStore = defineStore('reminders', () => {
     checking ??= useCases
       .checkNudge({
         settings: settingsStore.settings,
-        delivery: tabDelivery(pushStatus.value === 'on'),
+        delivery: tabDelivery(pushStatus.value, userIsLooking()),
       })
       .then((result) => {
         nextAt.value = result.nextAt
@@ -48,29 +50,23 @@ export const useRemindersStore = defineStore('reminders', () => {
     await syncPush()
   }
 
-  /**
-   * With notification permission, make sure the server has this device's push subscription.
-   * Runs on start too: subscriptions can expire or be dropped by the browser.
-   */
+  /** The user can change the permission in browser settings at any time. */
+  function refreshPermission() {
+    permission.value = notifications.permission()
+  }
+
   async function syncPush() {
     try {
-      pushStatus.value = await push.status()
-      if (permission.value === 'granted' && pushStatus.value === 'off') {
-        await push.enable()
-        pushStatus.value = 'on'
-      }
-      if (pushStatus.value === 'on') syncSnapshot()
+      pushStatus.value = await useCases.syncPush(permission.value)
+      syncSnapshot()
     } catch (error) {
       console.warn('[push] could not enable push', error)
     }
   }
 
-  /** Waits a moment so a burst of changes (ticking off three tasks) becomes one request. */
-  const SNAPSHOT_DEBOUNCE_MS = 1000
   let snapshotTimer: ReturnType<typeof setTimeout> | undefined
-  let lastSentSnapshot = ''
 
-  /** Keeps the server's copy of settings and counts up to date. Cheap to call often. */
+  /** Schedules a sync of the server's copy of reminders. Cheap to call often. */
   function syncSnapshot() {
     if (pushStatus.value !== 'on') return
     clearTimeout(snapshotTimer)
@@ -78,43 +74,28 @@ export const useRemindersStore = defineStore('reminders', () => {
   }
 
   /**
-   * Sends a pending sync right away. Called when the app goes to the background: iOS freezes
+   * Sends a scheduled sync right away. Called when the app goes to the background: iOS freezes
    * the PWA before a debounce timer fires, and the server would keep stale counts.
    */
   function flushSnapshot() {
-    if (snapshotTimer === undefined) return
-    void sendSnapshot()
+    if (snapshotTimer !== undefined) void sendSnapshot()
   }
 
   async function sendSnapshot() {
     clearTimeout(snapshotTimer)
     snapshotTimer = undefined
     try {
-      const { settings } = settingsStore
-      const today = toLocalDate(clock.now(), settings.timeZone)
-      // Titles first: by the time the server pushes, the device must know what to say.
-      await localTitles.save(await useCases.getPendingTitles(today))
-      const snapshot = await useCases.getReminderSnapshot(settings, today)
-      const serialized = JSON.stringify(snapshot)
-      if (serialized === lastSentSnapshot) return
-      await push.syncSnapshot(snapshot)
-      lastSentSnapshot = serialized
+      await useCases.syncReminders(settingsStore.settings)
     } catch (error) {
       console.warn('[push] could not sync the snapshot', error)
     }
   }
 
-  /** Asks the server to send a push — checks the whole chain end to end. */
-  async function sendServerTest(delaySeconds: number) {
-    await push.sendTest(settingsStore.settings.locale, delaySeconds)
-  }
-
-  /** The user can change the permission in browser settings at any time. */
-  function refreshPermission() {
-    permission.value = notifications.permission()
-  }
-
   const sendTest = (message: NudgeMessage) => notifications.show(message)
+
+  /** Asks the server to send a push — checks the whole chain end to end. */
+  const sendServerTest = (delaySeconds: number) =>
+    push.sendTest(settingsStore.settings.locale, delaySeconds)
 
   return {
     permission,
