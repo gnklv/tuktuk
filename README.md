@@ -66,14 +66,17 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 
 - [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
 - [x] **1. Today's tasks** — data model (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage, habits by weekday, task removal, day rollover
-- [ ] **2. Day deadline & pressure** — settings, `pressure()` / `nextNudgeInterval()`, pressure indicator + emoji mascot
+- [ ] **2. Day deadline & pressure** — settings screen, `pressure()` / `nextNudgeInterval()`, pressure-driven UI + emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
-- [ ] **4. Gamification v1** — XP with early-finish multiplier, streak, day summary, levels
-- [ ] **5. PWA** — manifest, offline, "Add to Home Screen" onboarding
+- 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
+- [ ] **4. Streak** — a day counts when all required tasks are done, day summary
+- [ ] **5. PWA** — manifest, offline, "Add to Home Screen" onboarding (required for Web Push on iOS)
 - [ ] **6. Push server** — Cloudflare Worker: snapshot sync, cron, Web Push, "Done" action
-- [ ] **7. Telegram bot** — account linking, reminders, inline "Done" / "Later" buttons
-- [ ] **8. Mascot** — geometric woodpecker in Figma (7 moods), later Rive animation
-- [ ] **9. Polish** — streak freezes, limited snoozes, achievements, "name the first step", mascot personalities, accounts & sync
+- 🏁 **MVP** — reminders reach the phone while the app is closed, streak keeps you coming back
+- [ ] **7. XP & levels** — XP with early-finish multiplier, levels
+- [ ] **8. Telegram bot** — second reminder channel: account linking, inline "Done" / "Later" buttons
+- [ ] **9. Mascot** — geometric woodpecker in Figma (7 moods), later Rive animation
+- [ ] **10. Polish** — streak freezes, limited snoozes, achievements, "name the first step", mascot personalities, accounts & sync, undo instead of confirm
 
 ## Getting started
 
