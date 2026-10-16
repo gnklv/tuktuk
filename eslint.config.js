@@ -70,5 +70,23 @@ export default tseslint.config(
     },
   },
   ...boundaries,
+  // Fakes and test helpers never ship. A separate rule, so it doesn't override the layer rules.
+  {
+    files: ['**/*.ts', '**/*.vue'],
+    ignores: ['**/*.test.ts', '**/testing/**'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@tuktuk/core/testing', '**/testing', '**/testing/**'],
+              message: 'Test helpers are for tests only.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 )
