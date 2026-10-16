@@ -14,12 +14,28 @@ import NotificationsBanner from '../features/reminders/NotificationsBanner.vue'
 import StreakBadge from '../features/today/StreakBadge.vue'
 import YesterdaySummary from '../features/today/YesterdaySummary.vue'
 import { useYesterdaySummary } from '../features/today/use-yesterday-summary'
+import { errorMessageKey } from '../i18n/errors'
+import { useToastsStore } from '../stores/toasts'
 
 const { t, d } = useAppI18n()
 const today = useTodayStore()
 const settingsStore = useSettingsStore()
 const reminders = useRemindersStore()
 const { visible: showSummary, dismiss: dismissSummary } = useYesterdaySummary()
+const toasts = useToastsStore()
+
+/**
+ * Runs a list action; on failure tells the user and reloads the day — e.g. the task was
+ * removed in another tab, or storage is full.
+ */
+async function attempt(action: () => Promise<unknown>) {
+  try {
+    await action()
+  } catch (error) {
+    toasts.show(t(errorMessageKey(error)), 'error')
+    await today.load().catch(() => {}) // nothing more to do if even reading fails
+  }
+}
 </script>
 
 <template>
@@ -61,8 +77,8 @@ const { visible: showSummary, dismiss: dismissSummary } = useYesterdaySummary()
         v-for="item in today.overview.items"
         :key="item.task.id"
         :item="item"
-        @toggle="today.toggle(item.task.id)"
-        @remove="today.archive(item.task.id)"
+        @toggle="attempt(() => today.toggle(item.task.id))"
+        @remove="attempt(() => today.archive(item.task.id))"
       />
     </ul>
 

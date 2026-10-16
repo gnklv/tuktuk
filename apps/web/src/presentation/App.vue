@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import { useAppLifecycle } from './composables/use-app-lifecycle'
 import { useDocumentSync } from './composables/use-document-sync'
+import ToastHost from './features/toasts/ToastHost.vue'
 
 useAppLifecycle()
 useDocumentSync()
@@ -11,6 +12,7 @@ useDocumentSync()
   <main class="layout">
     <RouterView />
   </main>
+  <ToastHost />
 </template>
 
 <style scoped>
