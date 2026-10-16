@@ -1,4 +1,4 @@
-import { parseReminderSnapshot } from '@tuktuk/core'
+import { parseReminderSnapshot, type Clock } from '@tuktuk/core'
 import type {
   DeviceRepository,
   PushSubscriptionData,
@@ -12,7 +12,7 @@ export interface DevicesDeps {
   subscriptions: SubscriptionRepository
   snapshots: SnapshotRepository
   secrets: Secrets
-  now: () => Date
+  clock: Clock
 }
 
 /** Every way a device request can be rejected. The http layer maps codes to statuses. */
@@ -34,7 +34,7 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
       await deps.devices.create({
         id: deviceId,
         tokenHash: await deps.secrets.hash(token),
-        createdAt: deps.now(),
+        createdAt: deps.clock.now(),
       })
       return { deviceId, token }
     },
@@ -46,7 +46,7 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
     },
 
     async saveSubscription(deviceId: string, input: unknown): Promise<void> {
-      await deps.subscriptions.save(deviceId, parseSubscription(input), deps.now())
+      await deps.subscriptions.save(deviceId, parseSubscription(input), deps.clock.now())
     },
 
     removeSubscription: (deviceId: string) => deps.subscriptions.remove(deviceId),
@@ -55,7 +55,7 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
     async saveSnapshot(deviceId: string, input: unknown): Promise<void> {
       const snapshot = parseReminderSnapshot(input)
       if (!snapshot) throw new DeviceError('invalid_snapshot')
-      await deps.snapshots.save(deviceId, snapshot, deps.now())
+      await deps.snapshots.save(deviceId, snapshot, deps.clock.now())
     },
   }
 }

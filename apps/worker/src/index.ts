@@ -8,6 +8,7 @@ import {
   D1SnapshotRepository,
   D1SubscriptionRepository,
 } from './infrastructure/d1-repositories'
+import { systemClock } from './infrastructure/system-clock'
 import { webCryptoSecrets } from './infrastructure/web-crypto-secrets'
 import { WebPushSender } from './infrastructure/web-push-sender'
 
@@ -25,7 +26,7 @@ export default {
       subscriptions: new D1SubscriptionRepository(env.DB),
       snapshots: new D1SnapshotRepository(env.DB),
       secrets: webCryptoSecrets,
-      now: () => new Date(),
+      clock: systemClock,
     })
 
     return handleRequest(request, {

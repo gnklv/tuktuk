@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fakeClock } from '@tuktuk/core/testing'
 import { handleRequest, type HttpDeps } from './router'
 import { makeDeviceUseCases } from '../application/devices'
 import {
@@ -20,7 +21,7 @@ beforeEach(() => {
       subscriptions: new InMemorySubscriptions(),
       snapshots: new InMemorySnapshots(),
       secrets: fakeSecrets,
-      now: () => new Date(),
+      clock: fakeClock('2026-10-16T12:00:00Z'),
     }),
   }
 })

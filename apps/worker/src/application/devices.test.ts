@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { fakeClock } from '@tuktuk/core/testing'
 import { makeDeviceUseCases } from './devices'
 import { InMemoryDevices, InMemorySnapshots, InMemorySubscriptions, fakeSecrets } from './fakes'
 
@@ -21,7 +22,7 @@ beforeEach(() => {
     subscriptions,
     snapshots,
     secrets: fakeSecrets,
-    now: () => new Date('2026-10-16T12:00:00Z'),
+    clock: fakeClock('2026-10-16T12:00:00Z'),
   })
 })
 
