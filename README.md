@@ -41,7 +41,7 @@ tuktuk/
 │  └─ i18n/        @tuktuk/i18n — all ru/en text: UI strings and reminder wording
 ├─ apps/
 │  ├─ web/         Vue app — infrastructure + presentation
-│  └─ worker/      Cloudflare Worker for push reminders (planned)
+│  └─ worker/      Cloudflare Worker + D1 — push reminders (in progress)
 ```
 
 Conventions:
@@ -113,14 +113,17 @@ tuktukDev.reset() // back to real time
 
 ## Scripts
 
-| Command                        | Description                                          |
-| ------------------------------ | ---------------------------------------------------- |
-| `npm run dev`                  | Start the web app at http://localhost:5180           |
-| `npm run build`                | Type-check and build the web app                     |
-| `npm test`                     | Run all tests once                                   |
-| `npm run test:watch`           | Run tests in watch mode                              |
-| `npm run lint`                 | Lint the whole repo                                  |
-| `npm run typecheck`            | Type-check every workspace                           |
-| `npm run format`               | Format with Prettier                                 |
-| `npm run format:check`         | Check formatting without writing                     |
-| `npm run icons -w @tuktuk/web` | Regenerate PWA icons from `apps/web/public/logo.svg` |
+| Command                                       | Description                                          |
+| --------------------------------------------- | ---------------------------------------------------- |
+| `npm run dev`                                 | Start the web app at http://localhost:5180           |
+| `npm run build`                               | Type-check and build the web app                     |
+| `npm test`                                    | Run all tests once                                   |
+| `npm run test:watch`                          | Run tests in watch mode                              |
+| `npm run lint`                                | Lint the whole repo                                  |
+| `npm run typecheck`                           | Type-check every workspace                           |
+| `npm run format`                              | Format with Prettier                                 |
+| `npm run format:check`                        | Check formatting without writing                     |
+| `npm run icons -w @tuktuk/web`                | Regenerate PWA icons from `apps/web/public/logo.svg` |
+| `npm run dev -w @tuktuk/worker`               | Run the worker locally (http://localhost:8787)       |
+| `npm run deploy -w @tuktuk/worker`            | Deploy the worker to Cloudflare                      |
+| `npm run db:migrate:remote -w @tuktuk/worker` | Apply D1 migrations to the production database       |

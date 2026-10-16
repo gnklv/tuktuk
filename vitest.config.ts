@@ -20,6 +20,13 @@ export default defineConfig({
       },
       {
         test: {
+          name: 'worker',
+          root: 'apps/worker',
+          environment: 'node',
+        },
+      },
+      {
+        test: {
           name: 'web',
           root: 'apps/web',
           environment: 'node',
