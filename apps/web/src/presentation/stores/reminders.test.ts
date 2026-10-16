@@ -45,6 +45,8 @@ let app: App
 let useCases: AppUseCases
 let sent: ReminderSnapshot[]
 let localTitles: PendingTitles[]
+let notifier: RecordingNotifier
+let pushOn: boolean
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -52,6 +54,8 @@ beforeEach(() => {
   const taskRepo = new InMemoryTaskRepository()
   const completionRepo = new InMemoryCompletionRepository()
   const settingsRepo = new InMemorySettingsRepository()
+  notifier = new RecordingNotifier()
+  pushOn = true
   useCases = {
     addTask: makeAddTask({ taskRepo, ids: sequentialIds(), clock }),
     archiveTask: makeArchiveTask({ taskRepo }),
@@ -66,7 +70,7 @@ beforeEach(() => {
       taskRepo,
       completionRepo,
       nudgeLog: new InMemoryNudgeLog(),
-      notifier: new RecordingNotifier(),
+      notifier,
       copy: fakeNudgeCopy,
       random: () => 0,
     }),
@@ -74,7 +78,7 @@ beforeEach(() => {
   sent = []
   localTitles = []
   const push: PushAccess = {
-    status: async () => 'on',
+    status: async () => (pushOn ? 'on' : 'off'),
     enable: async () => {},
     sendTest: async () => {},
     syncSnapshot: async (snapshot) => {
@@ -141,5 +145,30 @@ describe('reminders store: snapshot sync', () => {
     store.flushSnapshot()
     await vi.advanceTimersByTimeAsync(1000)
     expect(sent).toHaveLength(before + 1)
+  })
+})
+
+describe('reminders store: delivery', () => {
+  // 09:00 UTC = 12:00 in Moscow: a reminder is due (none sent yet today).
+  const addTask = () =>
+    useCases.addTask({ title: 'Call mom', schedule: { kind: 'once', date: today } }, today)
+
+  it('with push on, the tab counts the reminder silently — the server delivers it', async () => {
+    const store = useStore()
+    await store.syncPush()
+    await addTask()
+    await store.check()
+    expect(notifier.shown).toEqual([])
+    expect(store.nextAt).not.toBeNull()
+  })
+
+  it('without push, the tab shows the notification itself', async () => {
+    pushOn = false
+    const store = useStore()
+    store.permission = 'denied' // keeps syncPush from enabling push
+    await store.syncPush()
+    await addTask()
+    await store.check()
+    expect(notifier.shown).toHaveLength(1)
   })
 })

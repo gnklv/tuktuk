@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import { toLocalDate, type NudgeMessage } from '@tuktuk/core'
+import { toLocalDate, type NudgeDelivery, type NudgeMessage } from '@tuktuk/core'
 import type { PushStatus } from '../../application/ports'
 import { useClock, useLocalTitles, useNotifications, usePush, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
@@ -8,6 +8,10 @@ import { useSettingsStore } from './settings'
 /** The user is looking at the app — a system notification would be noise. */
 const userIsLooking = () =>
   typeof document !== 'undefined' && document.visibilityState === 'visible' && document.hasFocus()
+
+/** With push on, the server delivers reminders; the tab only keeps its schedule for the UI. */
+const tabDelivery = (pushOn: boolean): NudgeDelivery =>
+  pushOn || userIsLooking() ? 'silent' : 'notify'
 
 /** In-tab reminder scheduler: `check()` is called every minute and whenever the day changes. */
 export const useRemindersStore = defineStore('reminders', () => {
@@ -28,9 +32,7 @@ export const useRemindersStore = defineStore('reminders', () => {
     checking ??= useCases
       .checkNudge({
         settings: settingsStore.settings,
-        // With push on, the server sends the reminders: the tab only keeps its schedule
-        // (for the "next reminder" hint) and must not notify a second time.
-        userIsLooking: pushStatus.value === 'on' || userIsLooking(),
+        delivery: tabDelivery(pushStatus.value === 'on'),
       })
       .then((result) => {
         nextAt.value = result.nextAt

@@ -74,4 +74,8 @@ export { makeGetPendingTitles } from './application/use-cases/get-pending-titles
 export { makeGetStreak } from './application/use-cases/get-streak'
 export type { StreakOverview } from './application/use-cases/get-streak'
 export type { PendingTitles } from './application/use-cases/get-pending-titles'
-export type { CheckNudgeInput, CheckNudgeResult } from './application/use-cases/check-nudge'
+export type {
+  CheckNudgeInput,
+  CheckNudgeResult,
+  NudgeDelivery,
+} from './application/use-cases/check-nudge'

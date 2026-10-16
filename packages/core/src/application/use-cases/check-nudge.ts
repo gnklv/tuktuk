@@ -9,13 +9,17 @@ import type { Notifier } from '../ports/notifier'
 import type { NudgeLogRepository } from '../ports/nudge-log-repository'
 import type { TaskRepository } from '../ports/task-repository'
 
+/**
+ * - `notify` — show the reminder as a system notification.
+ * - `silent` — don't show it, but count it, so the schedule moves on as if it was shown.
+ *   For when a notification would be noise (the user is looking at the app) or another
+ *   channel delivers reminders (Web Push from the server).
+ */
+export type NudgeDelivery = 'notify' | 'silent'
+
 export interface CheckNudgeInput {
   settings: Settings
-  /**
-   * The user is looking at the app right now: no system notification is needed,
-   * but it counts as a reminder, so the next one is spaced from now.
-   */
-  userIsLooking: boolean
+  delivery: NudgeDelivery
 }
 
 export interface CheckNudgeResult {
@@ -37,7 +41,7 @@ export const makeCheckNudge =
     copy: NudgeCopy
     random: () => number
   }) =>
-  async ({ settings, userIsLooking }: CheckNudgeInput): Promise<CheckNudgeResult> => {
+  async ({ settings, delivery }: CheckNudgeInput): Promise<CheckNudgeResult> => {
     const now = deps.clock.now()
     const today = toLocalDate(now, settings.timeZone)
     const [tasks, completions, last] = await Promise.all([
@@ -61,7 +65,7 @@ export const makeCheckNudge =
       previousId: last?.messageId ?? null,
       random: deps.random,
     })
-    if (!userIsLooking) await deps.notifier.show(message)
+    if (delivery === 'notify') await deps.notifier.show(message)
     await deps.nudgeLog.save({ date: today, at: now, messageId: message.id })
 
     return { nudged: true, nextAt: nextNudgeAt({ now, settings, ...counts, lastNudgeAt: now }) }

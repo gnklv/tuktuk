@@ -11,7 +11,7 @@ import {
 import { createDefaultSettings } from '../../domain/settings'
 import type { LocalDate } from '../../domain/local-date'
 import { makeAddTask } from './add-task'
-import { makeCheckNudge } from './check-nudge'
+import { makeCheckNudge, type NudgeDelivery } from './check-nudge'
 import { makeToggleCompletion } from './toggle-completion'
 
 // UTC; deadline 23:00, quiet hours 23:30–08:00
@@ -47,7 +47,7 @@ beforeEach(async () => {
   )
 })
 
-const run = (userIsLooking = false) => check({ settings, userIsLooking })
+const run = (delivery: NudgeDelivery = 'notify') => check({ settings, delivery })
 
 describe('checkNudge', () => {
   it('waits for the end of quiet hours', async () => {
@@ -75,9 +75,9 @@ describe('checkNudge', () => {
     expect(notifier.shown[1]?.id).not.toBe(notifier.shown[0]?.id)
   })
 
-  it('counts a nudge without a notification while the user is looking at the app', async () => {
+  it('silent delivery counts the reminder without showing a notification', async () => {
     clock.set(at('09:00'))
-    expect((await run(true)).nudged).toBe(true)
+    expect((await run('silent')).nudged).toBe(true)
     expect(notifier.shown).toEqual([])
     expect(nudgeLog.last?.at).toEqual(new Date(at('09:00')))
   })
