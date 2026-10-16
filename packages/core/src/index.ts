@@ -9,6 +9,16 @@ export { LOCALES, DEFAULT_LOCALE, isLocale, resolveLocale } from './domain/local
 export type { Locale } from './domain/locale'
 export { parseLocalDate, toLocalDate, weekdayOf, addDays } from './domain/local-date'
 export { msUntilNextLocalDay } from './domain/day-boundary'
+export {
+  PRESSURE_LEVELS,
+  DEFAULT_DAY_START,
+  computePressure,
+  pressureLevel,
+  nudgeIntervalMinutes,
+  nextNudgeAt,
+  dayStart,
+} from './domain/pressure'
+export type { PressureLevel, PressureInput, DayPressure, NextNudgeInput } from './domain/pressure'
 export type { LocalDate, Weekday } from './domain/local-date'
 export {
   MINUTES_IN_DAY,
