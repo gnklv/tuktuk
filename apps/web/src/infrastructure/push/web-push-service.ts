@@ -1,4 +1,4 @@
-import type { Locale } from '@tuktuk/core'
+import type { Locale, ReminderSnapshot } from '@tuktuk/core'
 import { ApiError, api } from './api-client'
 
 export type PushStatus = 'unsupported' | 'off' | 'on'
@@ -46,6 +46,17 @@ export class WebPushService {
       method: 'POST',
       body: { locale, delaySeconds },
       auth: this.auth(await this.ensureDevice()),
+    })
+  }
+
+  /** Settings and counts for the server's schedule. No-op until the device is registered. */
+  async syncSnapshot(snapshot: ReminderSnapshot): Promise<void> {
+    const credentials = this.credentials()
+    if (!credentials) return
+    await api('/devices/me/snapshot', {
+      method: 'PUT',
+      body: snapshot,
+      auth: this.auth(credentials),
     })
   }
 

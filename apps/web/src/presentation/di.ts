@@ -2,10 +2,12 @@ import { inject, type InjectionKey } from 'vue'
 import type {
   Clock,
   Locale,
+  ReminderSnapshot,
   NudgeMessage,
   Settings,
   makeAddTask,
   makeCheckNudge,
+  makeGetReminderSnapshot,
   makeArchiveTask,
   makeGetDayOverview,
   makeToggleCompletion,
@@ -19,6 +21,7 @@ export interface AppUseCases {
   getDayOverview: ReturnType<typeof makeGetDayOverview>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   checkNudge: ReturnType<typeof makeCheckNudge>
+  getReminderSnapshot: ReturnType<typeof makeGetReminderSnapshot>
 }
 
 export type NotificationPermissionState =
@@ -48,6 +51,8 @@ export interface PushAccess {
   enable(): Promise<void>
   /** The server sends a push after `delaySeconds` — time to lock the phone. */
   sendTest(locale: Locale, delaySeconds: number): Promise<void>
+  /** Tells the server what it needs to schedule reminders: settings and counts, no titles. */
+  syncSnapshot(snapshot: ReminderSnapshot): Promise<void>
 }
 
 export const PushKey: InjectionKey<PushAccess> = Symbol('Push')

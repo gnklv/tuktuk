@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import type { NudgeMessage } from '@tuktuk/core'
-import { useNotifications, usePush, useUseCases, type PushStatus } from '../di'
+import { toLocalDate, type NudgeMessage } from '@tuktuk/core'
+import { useClock, useNotifications, usePush, useUseCases, type PushStatus } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */
@@ -13,6 +13,7 @@ export const useRemindersStore = defineStore('reminders', () => {
   const useCases = useUseCases()
   const notifications = useNotifications()
   const push = usePush()
+  const clock = useClock()
   const settingsStore = useSettingsStore()
 
   const permission = shallowRef(notifications.permission())
@@ -50,9 +51,36 @@ export const useRemindersStore = defineStore('reminders', () => {
         await push.enable()
         pushStatus.value = 'on'
       }
+      if (pushStatus.value === 'on') syncSnapshot()
     } catch (error) {
       console.warn('[push] could not enable push', error)
     }
+  }
+
+  /** Waits a moment so a burst of changes (ticking off three tasks) becomes one request. */
+  const SNAPSHOT_DEBOUNCE_MS = 1000
+  let snapshotTimer: ReturnType<typeof setTimeout> | undefined
+  let lastSentSnapshot = ''
+
+  /** Keeps the server's copy of settings and counts up to date. Cheap to call often. */
+  function syncSnapshot() {
+    if (pushStatus.value !== 'on') return
+    clearTimeout(snapshotTimer)
+    snapshotTimer = setTimeout(async () => {
+      try {
+        const { settings } = settingsStore
+        const snapshot = await useCases.getReminderSnapshot(
+          settings,
+          toLocalDate(clock.now(), settings.timeZone),
+        )
+        const serialized = JSON.stringify(snapshot)
+        if (serialized === lastSentSnapshot) return
+        await push.syncSnapshot(snapshot)
+        lastSentSnapshot = serialized
+      } catch (error) {
+        console.warn('[push] could not sync the snapshot', error)
+      }
+    }, SNAPSHOT_DEBOUNCE_MS)
   }
 
   /** Asks the server to send a push — checks the whole chain end to end. */
@@ -75,6 +103,7 @@ export const useRemindersStore = defineStore('reminders', () => {
     requestPermission,
     refreshPermission,
     syncPush,
+    syncSnapshot,
     sendTest,
     sendServerTest,
   }

@@ -23,7 +23,11 @@ useClockTick(async () => {
   await reminders.check()
 })
 // Tasks or settings changed → the next reminder may be due earlier, later or not at all.
-watch([() => todayStore.overview, () => settingsStore.settings], () => reminders.check())
+watch([() => todayStore.overview, () => settingsStore.settings], () => {
+  void reminders.check()
+  // The server's copy too: it reminds while the app is closed.
+  reminders.syncSnapshot()
+})
 
 watchEffect(() => {
   locale.value = settingsStore.settings.locale

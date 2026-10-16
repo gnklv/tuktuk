@@ -1,7 +1,11 @@
 // Composition root of the push server: wires Cloudflare bindings into use cases and handlers.
 import { makeDeviceUseCases } from './application/devices'
 import { handleRequest } from './http/router'
-import { D1DeviceRepository, D1SubscriptionRepository } from './infrastructure/d1-repositories'
+import {
+  D1DeviceRepository,
+  D1SnapshotRepository,
+  D1SubscriptionRepository,
+} from './infrastructure/d1-repositories'
 import { webCryptoSecrets } from './infrastructure/web-crypto-secrets'
 import { WebPushSender } from './infrastructure/web-push-sender'
 
@@ -10,6 +14,7 @@ export default {
     const devices = makeDeviceUseCases({
       devices: new D1DeviceRepository(env.DB),
       subscriptions: new D1SubscriptionRepository(env.DB),
+      snapshots: new D1SnapshotRepository(env.DB),
       secrets: webCryptoSecrets,
       push: new WebPushSender({
         subject: env.VAPID_SUBJECT,

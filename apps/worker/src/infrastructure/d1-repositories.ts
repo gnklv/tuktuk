@@ -1,7 +1,9 @@
+import { parseReminderSnapshot, type ReminderSnapshot } from '@tuktuk/core'
 import type {
   Device,
   DeviceRepository,
   PushSubscriptionData,
+  SnapshotRepository,
   SubscriptionRepository,
 } from '../application/ports'
 
@@ -53,5 +55,28 @@ export class D1SubscriptionRepository implements SubscriptionRepository {
 
   async remove(deviceId: string): Promise<void> {
     await this.db.prepare('DELETE FROM push_subscriptions WHERE device_id = ?').bind(deviceId).run()
+  }
+}
+
+export class D1SnapshotRepository implements SnapshotRepository {
+  constructor(private readonly db: D1Database) {}
+
+  async save(deviceId: string, snapshot: ReminderSnapshot, now: Date): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO snapshots (device_id, data, updated_at) VALUES (?, ?, ?)
+         ON CONFLICT (device_id) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at`,
+      )
+      .bind(deviceId, JSON.stringify(snapshot), now.toISOString())
+      .run()
+  }
+
+  async get(deviceId: string): Promise<ReminderSnapshot | null> {
+    const row = await this.db
+      .prepare('SELECT data FROM snapshots WHERE device_id = ?')
+      .bind(deviceId)
+      .first<{ data: string }>()
+    // Re-validated on read: stored data may predate a format change.
+    return row ? parseReminderSnapshot(JSON.parse(row.data)) : null
   }
 }

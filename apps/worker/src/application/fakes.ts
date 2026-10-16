@@ -6,9 +6,10 @@ import type {
   PushSender,
   PushSubscriptionData,
   Secrets,
+  SnapshotRepository,
   SubscriptionRepository,
 } from './ports'
-import type { PushPayload } from '@tuktuk/core'
+import type { PushPayload, ReminderSnapshot } from '@tuktuk/core'
 
 export class InMemoryDevices implements DeviceRepository {
   readonly all = new Map<string, Device>()
@@ -30,6 +31,16 @@ export class InMemorySubscriptions implements SubscriptionRepository {
   }
   async remove(deviceId: string) {
     this.all.delete(deviceId)
+  }
+}
+
+export class InMemorySnapshots implements SnapshotRepository {
+  readonly all = new Map<string, ReminderSnapshot>()
+  async save(deviceId: string, snapshot: ReminderSnapshot) {
+    this.all.set(deviceId, snapshot)
+  }
+  async get(deviceId: string) {
+    return this.all.get(deviceId) ?? null
   }
 }
 

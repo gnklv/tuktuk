@@ -6,6 +6,7 @@ import {
   makeAddTask,
   makeArchiveTask,
   makeCheckNudge,
+  makeGetReminderSnapshot,
   makeGetDayOverview,
   makeToggleCompletion,
   makeUpdateSettings,
@@ -40,6 +41,7 @@ beforeEach(() => {
     toggleCompletion: makeToggleCompletion({ taskRepo, completionRepo, clock }),
     getDayOverview: makeGetDayOverview({ taskRepo, completionRepo }),
     updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
+    getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
     checkNudge: makeCheckNudge({
       clock,
       taskRepo,

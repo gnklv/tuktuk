@@ -1,5 +1,6 @@
 import { isLocale } from '@tuktuk/core'
 import {
+  InvalidSnapshotError,
   InvalidSubscriptionError,
   NoSubscriptionError,
   type DeviceUseCases,
@@ -62,6 +63,10 @@ async function route(request: Request, deps: HttpDeps): Promise<Response> {
       await deps.devices.removeSubscription(deviceId)
       return new Response(null, { status: 204 })
     }
+    if (path === '/devices/me/snapshot' && method === 'PUT') {
+      await deps.devices.saveSnapshot(deviceId, await readJson(request))
+      return new Response(null, { status: 204 })
+    }
     if (path === '/devices/me/test-push' && method === 'POST') {
       const body = ((await readJson(request)) ?? {}) as { locale?: unknown; delaySeconds?: unknown }
       const { locale, delaySeconds = 0 } = body
@@ -109,6 +114,7 @@ async function readJson(request: Request): Promise<unknown> {
 function toErrorResponse(error: unknown): Response {
   if (error instanceof InvalidJsonError) return json({ error: 'invalid_json' }, 400)
   if (error instanceof InvalidSubscriptionError) return json({ error: 'invalid_subscription' }, 400)
+  if (error instanceof InvalidSnapshotError) return json({ error: 'invalid_snapshot' }, 400)
   if (error instanceof NoSubscriptionError) return json({ error: 'no_subscription' }, 409)
   console.error('[http] unhandled error', error)
   return json({ error: 'internal' }, 500)

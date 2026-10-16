@@ -3,6 +3,7 @@ import { handleRequest, type HttpDeps } from './router'
 import { makeDeviceUseCases } from '../application/devices'
 import {
   InMemoryDevices,
+  InMemorySnapshots,
   InMemorySubscriptions,
   RecordingPushSender,
   fakeSecrets,
@@ -29,6 +30,7 @@ beforeEach(() => {
     devices: makeDeviceUseCases({
       devices: new InMemoryDevices(),
       subscriptions: new InMemorySubscriptions(),
+      snapshots: new InMemorySnapshots(),
       secrets: fakeSecrets,
       push,
       now: () => new Date(),
@@ -163,6 +165,19 @@ describe('router', () => {
     expect(
       (await call('POST', '/devices/me/test-push', { auth, body: { locale: 'en' } })).status,
     ).toBe(410)
+  })
+
+  it('PUT /devices/me/snapshot validates and stores the snapshot', async () => {
+    const auth = await register()
+    const snapshot = {
+      settings: { locale: 'ru', timeZone: 'Europe/Moscow', dayDeadline: 1380, quietHours: null },
+      days: [{ date: '2026-10-17', total: 2, pending: 2 }],
+    }
+    expect((await call('PUT', '/devices/me/snapshot', { auth, body: snapshot })).status).toBe(204)
+    expect((await call('PUT', '/devices/me/snapshot', { auth, body: { days: 'x' } })).status).toBe(
+      400,
+    )
+    expect((await call('PUT', '/devices/me/snapshot', { body: snapshot })).status).toBe(401)
   })
 
   it('returns 404 for unknown routes', async () => {

@@ -1,4 +1,4 @@
-import type { PushPayload } from '@tuktuk/core'
+import type { PushPayload, ReminderSnapshot } from '@tuktuk/core'
 
 export interface Device {
   readonly id: string
@@ -38,4 +38,9 @@ export type PushResult = 'sent' | 'gone'
 
 export interface PushSender {
   send(subscription: PushSubscriptionData, payload: PushPayload): Promise<PushResult>
+}
+
+export interface SnapshotRepository {
+  save(deviceId: string, snapshot: ReminderSnapshot, now: Date): Promise<void>
+  get(deviceId: string): Promise<ReminderSnapshot | null>
 }

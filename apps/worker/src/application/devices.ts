@@ -1,16 +1,18 @@
-import type { Locale } from '@tuktuk/core'
+import { parseReminderSnapshot, type Locale } from '@tuktuk/core'
 import type {
   DeviceRepository,
   PushResult,
   PushSender,
   PushSubscriptionData,
   Secrets,
+  SnapshotRepository,
   SubscriptionRepository,
 } from './ports'
 
 export interface DevicesDeps {
   devices: DeviceRepository
   subscriptions: SubscriptionRepository
+  snapshots: SnapshotRepository
   secrets: Secrets
   push: PushSender
   now: () => Date
@@ -18,6 +20,7 @@ export interface DevicesDeps {
 
 export class InvalidSubscriptionError extends Error {}
 export class NoSubscriptionError extends Error {}
+export class InvalidSnapshotError extends Error {}
 
 export function makeDeviceUseCases(deps: DevicesDeps) {
   return {
@@ -48,6 +51,13 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
     },
 
     removeSubscription: (deviceId: string) => deps.subscriptions.remove(deviceId),
+
+    /** Replaces the device's reminder snapshot (settings and counts, no titles). */
+    async saveSnapshot(deviceId: string, input: unknown): Promise<void> {
+      const snapshot = parseReminderSnapshot(input)
+      if (!snapshot) throw new InvalidSnapshotError()
+      await deps.snapshots.save(deviceId, snapshot, deps.now())
+    },
 
     /** Throws `NoSubscriptionError` if the device has no push subscription. */
     async ensureSubscription(deviceId: string): Promise<void> {

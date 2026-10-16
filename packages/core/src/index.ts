@@ -56,6 +56,8 @@ export type { NudgeLogRepository, NudgeLogEntry } from './application/ports/nudg
 // Application: push protocol shared by the server and the Service Worker
 export { parsePushPayload } from './application/push-payload'
 export type { PushPayload } from './application/push-payload'
+export { SNAPSHOT_DAYS, parseReminderSnapshot, dayCountsOn } from './application/reminder-snapshot'
+export type { ReminderSnapshot, ReminderSettings, DayCounts } from './application/reminder-snapshot'
 
 // Application use cases
 export { makeAddTask } from './application/use-cases/add-task'
@@ -65,4 +67,5 @@ export { makeGetDayOverview } from './application/use-cases/get-day-overview'
 export { makeGetSettings, makeUpdateSettings } from './application/use-cases/settings'
 export type { SettingsEnvironment } from './application/use-cases/settings'
 export { makeCheckNudge } from './application/use-cases/check-nudge'
+export { makeGetReminderSnapshot } from './application/use-cases/get-reminder-snapshot'
 export type { CheckNudgeInput, CheckNudgeResult } from './application/use-cases/check-nudge'
