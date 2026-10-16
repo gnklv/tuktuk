@@ -16,6 +16,7 @@ import {
 } from './presentation/di'
 import { createAppI18n } from './presentation/i18n'
 import { createAppRouter } from './presentation/router'
+import { installNewVersionRecovery } from './presentation/new-version'
 import { systemClock } from './infrastructure/system-clock'
 import { createDevClock } from './infrastructure/dev-clock'
 import { cryptoIdGenerator } from './infrastructure/crypto-id-generator'
@@ -64,6 +65,9 @@ const useCases = createUseCases({
 
 const settings = await makeGetSettings({ settingsRepo })(env)
 
+const router = createAppRouter()
+installNewVersionRecovery(router)
+
 createApp(App)
   .provide(ClockKey, clock)
   .provide(UseCasesKey, useCases)
@@ -73,5 +77,5 @@ createApp(App)
   .provide(EnvironmentKey, browserEnvironment)
   .use(createPinia())
   .use(createAppI18n(settings.locale))
-  .use(createAppRouter())
+  .use(router)
   .mount('#app')
