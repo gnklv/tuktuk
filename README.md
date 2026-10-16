@@ -102,6 +102,19 @@ Web Push uses VAPID keys. The public key is in `apps/worker/wrangler.jsonc`, the
 Cloudflare secret (`VAPID_PRIVATE_KEY`) and, for local development, lives in `apps/worker/.dev.vars`
 (git-ignored). Rotating the keys invalidates all existing push subscriptions.
 
+## Deployment
+
+GitHub Actions (`.github/workflows/ci.yml`):
+
+- **Pull requests** — lint, typecheck, tests, formatting.
+- **Push to `master`** — the same checks, then the push server (D1 migrations → deploy → health
+  check), then the web app to GitHub Pages. The worker goes first because a new web app may rely on
+  its new API; if a migration or the deploy fails, the run fails and the web app isn't deployed.
+
+The worker job needs a repository secret **`CLOUDFLARE_API_TOKEN`**: a Cloudflare API token
+(_My Profile → API Tokens → Create Custom Token_) with account permissions **Workers Scripts: Edit**
+and **D1: Edit**, limited to this account.
+
 ## Getting started
 
 Requires Node.js 24+ (see `.nvmrc`).

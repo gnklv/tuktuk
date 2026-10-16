@@ -1,6 +1,8 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "tuktuk",
+  // Not a secret; lets CI deploy with just an API token.
+  "account_id": "af5fcc7a89393f19f327f80e217e6d80",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
