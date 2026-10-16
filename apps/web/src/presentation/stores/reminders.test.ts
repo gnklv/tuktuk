@@ -29,6 +29,7 @@ import {
 import {
   ClockKey,
   InitialSettingsKey,
+  LocalTitlesKey,
   NotificationsKey,
   PushKey,
   UseCasesKey,
@@ -79,9 +80,6 @@ beforeEach(() => {
     syncSnapshot: async (snapshot) => {
       sent.push(snapshot)
     },
-    saveLocalTitles: async (titles) => {
-      localTitles.push(titles)
-    },
   }
   app = createApp({})
     .provide(ClockKey, clock)
@@ -93,6 +91,11 @@ beforeEach(() => {
       show: async () => {},
     })
     .provide(PushKey, push)
+    .provide(LocalTitlesKey, {
+      save: async (titles) => {
+        localTitles.push(titles)
+      },
+    })
     .use(createPinia())
 })
 

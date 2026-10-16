@@ -21,6 +21,7 @@ import {
   InitialSettingsKey,
   NotificationsKey,
   PushKey,
+  LocalTitlesKey,
   UiPrefsKey,
   UseCasesKey,
   type AppUseCases,
@@ -32,7 +33,10 @@ import { createDevClock } from './infrastructure/dev-clock'
 import { cryptoIdGenerator } from './infrastructure/crypto-id-generator'
 import { browserEnvironment } from './infrastructure/browser-environment'
 import { BrowserNotifier } from './infrastructure/browser-notifier'
-import { WebPushService } from './infrastructure/push/web-push-service'
+import { WebPushService, browserPushRegistration } from './infrastructure/push/web-push-service'
+import { PushServerClient } from './infrastructure/push/push-server-client'
+import { DeviceCredentialsStore } from './infrastructure/push/device-credentials-store'
+import { IndexedDbReminderTitles } from './infrastructure/indexed-db-reminder-titles'
 import { LocalStorageTaskRepository } from './infrastructure/storage/local-storage-task-repository'
 import { LocalStorageCompletionRepository } from './infrastructure/storage/local-storage-completion-repository'
 import { LocalStorageSettingsRepository } from './infrastructure/storage/local-storage-settings-repository'
@@ -46,7 +50,15 @@ const completionRepo = new LocalStorageCompletionRepository(localStorage)
 const settingsRepo = new LocalStorageSettingsRepository(localStorage)
 const nudgeLog = new LocalStorageNudgeLogRepository(localStorage)
 const notifier = new BrowserNotifier()
-const push = new WebPushService(localStorage)
+/** Push server: production by default, a local `wrangler dev` in development. */
+const apiUrl: string =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? 'http://localhost:8787' : 'https://tuktuk.tuktuk-worker.workers.dev')
+const push = new WebPushService({
+  credentials: new DeviceCredentialsStore(localStorage),
+  server: new PushServerClient(apiUrl),
+  registration: browserPushRegistration,
+})
 
 const updateSettings = makeUpdateSettings({ settingsRepo })
 const useCases: AppUseCases = {
@@ -77,6 +89,7 @@ createApp(App)
   .provide(InitialSettingsKey, settings)
   .provide(NotificationsKey, notifier)
   .provide(PushKey, push)
+  .provide(LocalTitlesKey, new IndexedDbReminderTitles())
   .provide(UiPrefsKey, new LocalStorageUiPrefs(localStorage))
   .use(createPinia())
   .use(createAppI18n(settings.locale))

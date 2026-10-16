@@ -15,7 +15,7 @@ import {
   type PushPayload,
 } from '@tuktuk/core'
 import { messages, nudgeCopy } from '@tuktuk/i18n'
-import { reminderTitles } from '../infrastructure/reminder-titles'
+import { IndexedDbReminderTitles } from '../infrastructure/indexed-db-reminder-titles'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -29,6 +29,8 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 // New versions take over right away; the app has no state worth keeping an old version for.
 void self.skipWaiting()
 clientsClaim()
+
+const reminderTitles = new IndexedDbReminderTitles()
 
 const asset = (path: string) => new URL(path, self.registration.scope).href
 

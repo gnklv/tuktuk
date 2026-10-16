@@ -11,7 +11,12 @@ import type {
   makeGetDayOverview,
   makeToggleCompletion,
 } from '@tuktuk/core'
-import type { NotificationAccess, PushAccess, UiPrefs } from '../application/ports'
+import type {
+  LocalTitlesStore,
+  NotificationAccess,
+  PushAccess,
+  UiPrefs,
+} from '../application/ports'
 
 /** Use cases with all their dependencies already bound in the composition root. */
 export interface AppUseCases {
@@ -32,6 +37,7 @@ export const UseCasesKey: InjectionKey<AppUseCases> = Symbol.for('tuktuk:UseCase
 /** Settings loaded before mount, so the UI never sees "no settings yet". */
 export const InitialSettingsKey: InjectionKey<Settings> = Symbol.for('tuktuk:InitialSettings')
 export const PushKey: InjectionKey<PushAccess> = Symbol.for('tuktuk:Push')
+export const LocalTitlesKey: InjectionKey<LocalTitlesStore> = Symbol.for('tuktuk:LocalTitles')
 
 export const UiPrefsKey: InjectionKey<UiPrefs> = Symbol.for('tuktuk:UiPrefs')
 export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol.for('tuktuk:Notifications')
@@ -50,3 +56,4 @@ export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKe
 export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)
 export const usePush = (): PushAccess => injectStrict(PushKey)
 export const useUiPrefs = (): UiPrefs => injectStrict(UiPrefsKey)
+export const useLocalTitles = (): LocalTitlesStore => injectStrict(LocalTitlesKey)

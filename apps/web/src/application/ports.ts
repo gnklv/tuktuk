@@ -25,8 +25,11 @@ export interface PushAccess {
   sendTest(locale: Locale, delaySeconds: number): Promise<void>
   /** Tells the server what it needs to schedule reminders: settings and counts, no titles. */
   syncSnapshot(snapshot: ReminderSnapshot): Promise<void>
-  /** Keeps pending titles on the device, where push texts are composed. Never sent anywhere. */
-  saveLocalTitles(titles: PendingTitles): Promise<void>
+}
+
+/** Pending titles kept on the device, where push texts are composed. Never sent anywhere. */
+export interface LocalTitlesStore {
+  save(titles: PendingTitles): Promise<void>
 }
 
 /** Small per-device UI memory that isn't part of the domain. */

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
 import { toLocalDate, type NudgeMessage } from '@tuktuk/core'
 import type { PushStatus } from '../../application/ports'
-import { useClock, useNotifications, usePush, useUseCases } from '../di'
+import { useClock, useLocalTitles, useNotifications, usePush, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */
@@ -14,6 +14,7 @@ export const useRemindersStore = defineStore('reminders', () => {
   const useCases = useUseCases()
   const notifications = useNotifications()
   const push = usePush()
+  const localTitles = useLocalTitles()
   const clock = useClock()
   const settingsStore = useSettingsStore()
 
@@ -90,7 +91,7 @@ export const useRemindersStore = defineStore('reminders', () => {
       const { settings } = settingsStore
       const today = toLocalDate(clock.now(), settings.timeZone)
       // Titles first: by the time the server pushes, the device must know what to say.
-      await push.saveLocalTitles(await useCases.getPendingTitles(today))
+      await localTitles.save(await useCases.getPendingTitles(today))
       const snapshot = await useCases.getReminderSnapshot(settings, today)
       const serialized = JSON.stringify(snapshot)
       if (serialized === lastSentSnapshot) return

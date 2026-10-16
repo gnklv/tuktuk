@@ -1,112 +1,82 @@
-import type { Locale, PendingTitles, ReminderSnapshot } from '@tuktuk/core'
-import { reminderTitles } from '../reminder-titles'
+import type { Locale, ReminderSnapshot } from '@tuktuk/core'
 import type { PushAccess, PushStatus } from '../../application/ports'
-import { ApiError, api } from './api-client'
+import type { DeviceCredentialsStore } from './device-credentials-store'
+import { ApiError, type DeviceCredentials, type PushServerClient } from './push-server-client'
 
-interface DeviceCredentials {
-  deviceId: string
-  token: string
+/** The part of `ServiceWorkerRegistration` this service needs (easy to fake in tests). */
+export interface PushRegistration {
+  readonly pushManager: Pick<PushManager, 'getSubscription' | 'subscribe'>
 }
 
-const CREDENTIALS_KEY = 'tuktuk:v1:device'
+/** The real one; `null` without a Service Worker (dev mode) or Web Push support. */
+export async function browserPushRegistration(): Promise<PushRegistration | null> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null
+  return (await navigator.serviceWorker.getRegistration()) ?? null
+}
 
 const base64UrlToBytes = (value: string) =>
   Uint8Array.from(atob(value.replaceAll('-', '+').replaceAll('_', '/')), (c) => c.charCodeAt(0))
 
 /**
- * Web Push subscription of this device on the push server. The server never learns task titles:
- * it gets only the browser's push endpoint (and, later, counts and settings).
+ * Web Push for this device: registration on the push server and the browser's push
+ * subscription. The server never learns task titles — only the endpoint, counts and settings.
  */
 export class WebPushService implements PushAccess {
-  constructor(private readonly storage: Storage) {}
+  constructor(
+    private readonly deps: {
+      credentials: DeviceCredentialsStore
+      server: PushServerClient
+      registration: () => Promise<PushRegistration | null>
+    },
+  ) {}
 
   async status(): Promise<PushStatus> {
-    const registration = await this.registration()
+    const registration = await this.deps.registration()
     if (!registration) return 'unsupported'
     const subscription = await registration.pushManager.getSubscription()
-    return subscription && this.credentials() ? 'on' : 'off'
+    return subscription && this.deps.credentials.get() ? 'on' : 'off'
   }
 
   /** Subscribes and tells the server. Requires notification permission to be granted. */
   async enable(): Promise<void> {
-    const registration = await this.registration()
+    const registration = await this.deps.registration()
     if (!registration) throw new Error('push is not supported')
     try {
       await this.subscribe(registration)
     } catch (error) {
       // The server doesn't know this device (e.g. the database was reset): register again.
       if (!(error instanceof ApiError && error.status === 401)) throw error
-      this.storage.removeItem(CREDENTIALS_KEY)
+      this.deps.credentials.clear()
       await this.subscribe(registration)
     }
   }
 
   async sendTest(locale: Locale, delaySeconds: number): Promise<void> {
-    await api('/devices/me/test-push', {
-      method: 'POST',
-      body: { locale, delaySeconds },
-      auth: this.auth(await this.ensureDevice()),
-    })
+    await this.deps.server.sendTestPush(await this.ensureDevice(), locale, delaySeconds)
   }
 
   /** Settings and counts for the server's schedule. No-op until the device is registered. */
   async syncSnapshot(snapshot: ReminderSnapshot): Promise<void> {
-    const credentials = this.credentials()
-    if (!credentials) return
-    await api('/devices/me/snapshot', {
-      method: 'PUT',
-      body: snapshot,
-      auth: this.auth(credentials),
-      // Often sent as the app goes to the background.
-      keepalive: true,
-    })
+    const credentials = this.deps.credentials.get()
+    if (credentials) await this.deps.server.saveSnapshot(credentials, snapshot)
   }
 
-  saveLocalTitles(titles: PendingTitles): Promise<void> {
-    return reminderTitles.save(titles)
-  }
-
-  private async subscribe(registration: ServiceWorkerRegistration) {
+  private async subscribe(registration: PushRegistration) {
     const credentials = await this.ensureDevice()
     const subscription =
       (await registration.pushManager.getSubscription()) ??
       (await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: base64UrlToBytes(
-          (await api<{ publicKey: string }>('/push/public-key')).publicKey,
-        ),
+        applicationServerKey: base64UrlToBytes(await this.deps.server.publicKey()),
       }))
-    await api('/devices/me/push-subscription', {
-      method: 'PUT',
-      body: subscription.toJSON(),
-      auth: this.auth(credentials),
-    })
+    await this.deps.server.saveSubscription(credentials, subscription.toJSON())
   }
 
   private async ensureDevice(): Promise<DeviceCredentials> {
-    const existing = this.credentials()
+    const existing = this.deps.credentials.get()
     if (existing) return existing
-    const created = await api<DeviceCredentials>('/devices', { method: 'POST' })
-    this.storage.setItem(CREDENTIALS_KEY, JSON.stringify(created))
+    const created = await this.deps.server.registerDevice()
+    this.deps.credentials.save(created)
     return created
-  }
-
-  private credentials(): DeviceCredentials | null {
-    try {
-      const value = JSON.parse(
-        this.storage.getItem(CREDENTIALS_KEY) ?? 'null',
-      ) as DeviceCredentials | null
-      return value?.deviceId && value.token ? value : null
-    } catch {
-      return null
-    }
-  }
-
-  private auth = ({ deviceId, token }: DeviceCredentials) => `Bearer ${deviceId}.${token}`
-
-  /** `null` without a Service Worker — e.g. in dev mode or a browser without Web Push. */
-  private async registration(): Promise<ServiceWorkerRegistration | null> {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null
-    return (await navigator.serviceWorker.getRegistration()) ?? null
   }
 }
