@@ -21,7 +21,6 @@ import {
   ClockKey,
   InitialSettingsKey,
   NotificationsKey,
-  PushKey,
   UiPrefsKey,
   EnvironmentKey,
   UseCasesKey,
@@ -99,7 +98,6 @@ createApp(App)
   .provide(UseCasesKey, useCases)
   .provide(InitialSettingsKey, settings)
   .provide(NotificationsKey, notifier)
-  .provide(PushKey, push)
   .provide(UiPrefsKey, new LocalStorageUiPrefs(localStorage))
   .provide(EnvironmentKey, browserEnvironment)
   .use(createPinia())

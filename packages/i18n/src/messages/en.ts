@@ -26,8 +26,7 @@ export const en = {
       text: 'Allow notifications and I’ll nudge you about unfinished tasks — gently in the morning, relentlessly towards the deadline.',
     },
     enable: 'Enable reminders',
-    granted:
-      'Reminders are on. Keep this tab open — reminders with the app closed are coming soon.',
+    granted: 'Reminders are on.',
     denied:
       'Notifications are blocked. Allow them for this site in your browser settings to get reminders.',
     unsupported: 'This browser can’t show notifications.',
@@ -42,16 +41,6 @@ export const en = {
       off: 'Off.',
       unsupported: 'Not available here. On iPhone, open Tuk-Tuk from the Home Screen.',
       enable: 'Enable push notifications',
-      test: 'Send a push in {seconds} s',
-      testSent: 'Close the app or lock your phone — the push arrives in {seconds} s.',
-      error: 'That didn’t work. Check your connection and try again.',
-      testTitle: '🐦 Knock-knock from the server',
-      testBody: 'Push works! Now I can remind you even when the app is closed.',
-    },
-    test: {
-      button: 'Send a test reminder',
-      title: '🐦 Knock-knock',
-      body: 'This is what reminders look like. The closer the deadline, the louder I knock.',
     },
   },
   streak: {

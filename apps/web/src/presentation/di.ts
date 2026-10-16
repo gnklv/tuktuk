@@ -12,7 +12,7 @@ import type {
   makeGetDayOverview,
   makeToggleCompletion,
 } from '@tuktuk/core'
-import type { NotificationAccess, PushAccess, UiPrefs } from '../application/ports'
+import type { NotificationAccess, UiPrefs } from '../application/ports'
 import type { makeSyncPush, makeSyncReminders } from '../application/reminders'
 
 /** Use cases with all their dependencies already bound in the composition root. */
@@ -35,7 +35,6 @@ export const ClockKey: InjectionKey<Clock> = Symbol.for('tuktuk:Clock')
 export const UseCasesKey: InjectionKey<AppUseCases> = Symbol.for('tuktuk:UseCases')
 /** Settings loaded before mount, so the UI never sees "no settings yet". */
 export const InitialSettingsKey: InjectionKey<Settings> = Symbol.for('tuktuk:InitialSettings')
-export const PushKey: InjectionKey<PushAccess> = Symbol.for('tuktuk:Push')
 
 /** The device's language and timezone right now (they can change, e.g. when travelling). */
 export const EnvironmentKey: InjectionKey<() => SettingsEnvironment> =
@@ -55,6 +54,5 @@ export const useClock = (): Clock => injectStrict(ClockKey)
 export const useUseCases = (): AppUseCases => injectStrict(UseCasesKey)
 export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKey)
 export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)
-export const usePush = (): PushAccess => injectStrict(PushKey)
 export const useUiPrefs = (): UiPrefs => injectStrict(UiPrefsKey)
 export const useEnvironment = (): (() => SettingsEnvironment) => injectStrict(EnvironmentKey)

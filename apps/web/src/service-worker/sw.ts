@@ -32,8 +32,6 @@ const composePush = makeComposePush({
     const dict = messages[locale]
     return {
       appName: dict.app.name,
-      testTitle: dict.reminders.push.testTitle,
-      testBody: dict.reminders.push.testBody,
       fallback: (mood) => dict.mascot[mood],
     }
   },

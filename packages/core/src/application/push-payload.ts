@@ -6,15 +6,14 @@ import { PRESSURE_LEVELS, type DayPressure, type PressureLevel } from '../domain
  * What the push server sends to a device. The Service Worker turns it into a notification,
  * so task titles never leave the device: the server only knows counts and settings.
  */
-export type PushPayload =
-  | { readonly type: 'test'; readonly locale: Locale }
-  | {
-      readonly type: 'nudge'
-      readonly locale: Locale
-      /** The user's day the reminder is about — picks the matching local task titles. */
-      readonly date: LocalDate
-      readonly pressure: DayPressure
-    }
+export interface PushPayload {
+  /** Always set, so newer kinds of pushes can be told apart (and ignored) by older apps. */
+  readonly type: 'nudge'
+  readonly locale: Locale
+  /** The user's day the reminder is about — picks the matching local task titles. */
+  readonly date: LocalDate
+  readonly pressure: DayPressure
+}
 
 /** Parses untrusted push data; `null` if it's not a payload this app version understands. */
 export function parsePushPayload(data: unknown): PushPayload | null {
@@ -22,7 +21,6 @@ export function parsePushPayload(data: unknown): PushPayload | null {
   const { type, locale, date, pressure } = data as Record<string, unknown>
   if (typeof locale !== 'string' || !isLocale(locale)) return null
 
-  if (type === 'test') return { type, locale }
   if (type === 'nudge') {
     try {
       return { type, locale, date: parseLocalDate(String(date)), pressure: parsePressure(pressure) }

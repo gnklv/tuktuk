@@ -4,10 +4,6 @@ import { parsePushPayload } from './push-payload'
 const pressure = { value: 0.6, level: 'annoyed', elapsed: 0.8, minutesLeft: 90, overdue: false }
 
 describe('parsePushPayload', () => {
-  it('accepts a test payload', () => {
-    expect(parsePushPayload({ type: 'test', locale: 'ru' })).toEqual({ type: 'test', locale: 'ru' })
-  })
-
   it('accepts a nudge payload', () => {
     const nudge = { type: 'nudge', locale: 'en', date: '2026-10-17', pressure }
     expect(parsePushPayload(nudge)).toEqual(nudge)
@@ -18,8 +14,7 @@ describe('parsePushPayload', () => {
     'test',
     42,
     {},
-    { type: 'test' },
-    { type: 'test', locale: 'de' },
+    { type: 'test', locale: 'ru' },
     { type: 'x', locale: 'ru' },
     { type: 'nudge', locale: 'ru', date: '2026-10-17' },
     { type: 'nudge', locale: 'ru', date: 'tomorrow', pressure },

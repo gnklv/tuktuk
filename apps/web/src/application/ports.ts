@@ -1,6 +1,6 @@
 // Ports of the web app's application layer: what it needs from the browser and the push server.
 // Infrastructure implements them; presentation and composition root depend only on these types.
-import type { LocalDate, Locale, NudgeMessage, PendingTitles, ReminderSnapshot } from '@tuktuk/core'
+import type { LocalDate, PendingTitles, ReminderSnapshot } from '@tuktuk/core'
 
 export type NotificationPermissionState =
   | NotificationPermission
@@ -8,11 +8,10 @@ export type NotificationPermissionState =
   /** iOS Safari tab: notifications work only after "Add to Home Screen". */
   | 'needs-install'
 
-/** System notifications: permission handling and showing a message. */
+/** System notification permission, as the UI needs it. */
 export interface NotificationAccess {
   permission(): NotificationPermissionState
   requestPermission(): Promise<NotificationPermissionState>
-  show(message: NudgeMessage): Promise<void>
 }
 
 export type PushStatus = 'unsupported' | 'off' | 'on'
@@ -21,8 +20,6 @@ export type PushStatus = 'unsupported' | 'off' | 'on'
 export interface PushAccess {
   status(): Promise<PushStatus>
   enable(): Promise<void>
-  /** The server sends a push after `delaySeconds` — time to lock the phone. */
-  sendTest(locale: Locale, delaySeconds: number): Promise<void>
   /** Tells the server what it needs to schedule reminders: settings and counts, no titles. */
   syncSnapshot(snapshot: ReminderSnapshot): Promise<void>
 }

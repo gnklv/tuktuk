@@ -15,9 +15,6 @@ export interface HttpDeps {
 const STATUS: Record<DeviceErrorCode, number> = {
   invalid_subscription: 400,
   invalid_snapshot: 400,
-  invalid_locale: 400,
-  invalid_delay: 400,
-  no_subscription: 409,
 }
 
 export async function handleRequest(request: Request, deps: HttpDeps): Promise<Response> {
@@ -69,12 +66,6 @@ async function route(request: Request, deps: HttpDeps): Promise<Response> {
     if (path === '/devices/me/snapshot' && method === 'PUT') {
       await deps.devices.saveSnapshot(deviceId, await readJson(request))
       return noContent()
-    }
-    if (path === '/devices/me/test-push' && method === 'POST') {
-      const body = ((await readJson(request)) ?? {}) as { locale?: unknown; delaySeconds?: unknown }
-      const result = await deps.devices.requestTestPush(deviceId, body)
-      if (result === 'gone') return json({ error: 'subscription_gone' }, 410)
-      return json({ result }, result === 'scheduled' ? 202 : 200)
     }
   }
 

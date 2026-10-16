@@ -1,4 +1,4 @@
-import type { Locale, ReminderSnapshot } from '@tuktuk/core'
+import type { ReminderSnapshot } from '@tuktuk/core'
 
 export interface DeviceCredentials {
   readonly deviceId: string
@@ -36,13 +36,6 @@ export class PushServerClient {
       credentials,
       body: snapshot,
       keepalive: true,
-    })
-  }
-
-  sendTestPush(credentials: DeviceCredentials, locale: Locale, delaySeconds: number) {
-    return this.request('POST', '/devices/me/test-push', {
-      credentials,
-      body: { locale, delaySeconds },
     })
   }
 

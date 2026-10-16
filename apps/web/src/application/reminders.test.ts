@@ -28,7 +28,6 @@ function fakePush(status: PushStatus = 'on') {
     enable: vi.fn(async () => {
       push.current = 'on'
     }),
-    sendTest: async () => {},
     syncSnapshot: async (snapshot) => {
       sent.push(snapshot)
     },

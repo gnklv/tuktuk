@@ -1,4 +1,4 @@
-import type { Locale, ReminderSnapshot } from '@tuktuk/core'
+import type { ReminderSnapshot } from '@tuktuk/core'
 import type { PushAccess, PushStatus } from '../../application/ports'
 import type { DeviceCredentialsStore } from './device-credentials-store'
 import { ApiError, type DeviceCredentials, type PushServerClient } from './push-server-client'
@@ -49,10 +49,6 @@ export class WebPushService implements PushAccess {
       this.deps.credentials.clear()
       await this.subscribe(registration)
     }
-  }
-
-  async sendTest(locale: Locale, delaySeconds: number): Promise<void> {
-    await this.deps.server.sendTestPush(await this.ensureDevice(), locale, delaySeconds)
   }
 
   /** Settings and counts for the server's schedule. No-op until the device is registered. */

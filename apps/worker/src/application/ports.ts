@@ -57,8 +57,3 @@ export interface NudgeTargetRepository {
   listActive(): Promise<NudgeTarget[]>
   recordNudge(deviceId: string, date: LocalDate, at: Date): Promise<void>
 }
-
-/** Work that continues after the response is sent (Workers allow about 30 seconds). */
-export interface BackgroundTasks {
-  runLater(delayMs: number, task: () => Promise<unknown>): void
-}

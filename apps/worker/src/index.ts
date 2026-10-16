@@ -19,22 +19,12 @@ const pushSender = (env: Env) =>
   })
 
 export default {
-  fetch(request, env, ctx) {
+  fetch(request, env) {
     const devices = makeDeviceUseCases({
       devices: new D1DeviceRepository(env.DB),
       subscriptions: new D1SubscriptionRepository(env.DB),
       snapshots: new D1SnapshotRepository(env.DB),
       secrets: webCryptoSecrets,
-      push: pushSender(env),
-      background: {
-        runLater: (delayMs, task) =>
-          ctx.waitUntil(
-            scheduler
-              .wait(delayMs)
-              .then(task)
-              .catch((error: unknown) => console.error('[background] task failed', error)),
-          ),
-      },
       now: () => new Date(),
     })
 

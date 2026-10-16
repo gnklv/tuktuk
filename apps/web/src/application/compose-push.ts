@@ -13,8 +13,6 @@ import type { PushTitlesSource } from './ports'
 /** Texts a push may need besides reminder wording. */
 export interface PushTexts {
   appName: string
-  testTitle: string
-  testBody: string
   /** Said when the device has no titles to name (e.g. storage was cleared). */
   fallback(mood: NudgeMood): string
 }
@@ -39,7 +37,6 @@ export function makeComposePush(deps: {
     const payload = parsePushPayload(data)
     const texts = deps.texts(payload?.locale ?? localeOf(data))
     if (!payload) return { title: texts.appName, body: '' }
-    if (payload.type === 'test') return { title: texts.testTitle, body: texts.testBody }
 
     // A reminder: the same wording rules as in the app.
     try {

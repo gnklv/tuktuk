@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { LocalDate, PushPayload } from '@tuktuk/core'
 import { WebPushSender } from './web-push-sender'
 import { toBase64Url } from './base64url'
 
@@ -26,6 +27,13 @@ async function keys() {
   }
 }
 
+const nudge: PushPayload = {
+  type: 'nudge',
+  locale: 'ru',
+  date: '2026-10-17' as LocalDate,
+  pressure: { value: 0.5, level: 'insistent', elapsed: 0.7, minutesLeft: 120, overdue: false },
+}
+
 afterEach(() => vi.unstubAllGlobals())
 
 describe('WebPushSender', () => {
@@ -34,9 +42,7 @@ describe('WebPushSender', () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 201 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    expect(await new WebPushSender(vapid).send(subscription, { type: 'test', locale: 'ru' })).toBe(
-      'sent',
-    )
+    expect(await new WebPushSender(vapid).send(subscription, nudge)).toBe('sent')
 
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     const headers = new Headers(init.headers)
@@ -45,7 +51,7 @@ describe('WebPushSender', () => {
     expect(headers.get('authorization')).toMatch(/^vapid t=[\w-]+\.[\w-]+\.[\w-]+, k=/)
     expect(headers.get('ttl')).toBe('900')
     // The payload is encrypted: the plaintext must not be visible.
-    expect(new TextDecoder().decode(init.body as ArrayBuffer)).not.toContain('"test"')
+    expect(new TextDecoder().decode(init.body as ArrayBuffer)).not.toContain('"nudge"')
   })
 
   it('maps 404 and 410 to gone, other errors to an exception', async () => {
@@ -53,9 +59,9 @@ describe('WebPushSender', () => {
     const sender = new WebPushSender(vapid)
 
     vi.stubGlobal('fetch', async () => new Response(null, { status: 410 }))
-    expect(await sender.send(subscription, { type: 'test', locale: 'en' })).toBe('gone')
+    expect(await sender.send(subscription, nudge)).toBe('gone')
 
     vi.stubGlobal('fetch', async () => new Response('rate limited', { status: 429 }))
-    await expect(sender.send(subscription, { type: 'test', locale: 'en' })).rejects.toThrow('429')
+    await expect(sender.send(subscription, nudge)).rejects.toThrow('429')
   })
 })

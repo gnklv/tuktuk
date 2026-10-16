@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import { shallowRef } from 'vue'
-import type { NudgeMessage } from '@tuktuk/core'
 import type { PushStatus } from '../../application/ports'
 import { tabDelivery } from '../../application/reminders'
-import { useNotifications, usePush, useUseCases } from '../di'
+import { useNotifications, useUseCases } from '../di'
 import { useSettingsStore } from './settings'
 
 /** The user is looking at the app — a system notification would be noise. */
@@ -20,7 +19,6 @@ const SNAPSHOT_DEBOUNCE_MS = 1000
 export const useRemindersStore = defineStore('reminders', () => {
   const useCases = useUseCases()
   const notifications = useNotifications()
-  const push = usePush()
   const settingsStore = useSettingsStore()
 
   const permission = shallowRef(notifications.permission())
@@ -91,12 +89,6 @@ export const useRemindersStore = defineStore('reminders', () => {
     }
   }
 
-  const sendTest = (message: NudgeMessage) => notifications.show(message)
-
-  /** Asks the server to send a push — checks the whole chain end to end. */
-  const sendServerTest = (delaySeconds: number) =>
-    push.sendTest(settingsStore.settings.locale, delaySeconds)
-
   return {
     permission,
     pushStatus,
@@ -107,7 +99,5 @@ export const useRemindersStore = defineStore('reminders', () => {
     syncPush,
     syncSnapshot,
     flushSnapshot,
-    sendTest,
-    sendServerTest,
   }
 })

@@ -5,18 +5,12 @@ import {
   InMemoryDevices,
   InMemorySnapshots,
   InMemorySubscriptions,
-  ManualBackground,
-  RecordingPushSender,
   fakeSecrets,
 } from '../application/fakes'
 
 let deps: HttpDeps
-let push: RecordingPushSender
-let background: ManualBackground
 
 beforeEach(() => {
-  push = new RecordingPushSender()
-  background = new ManualBackground()
   deps = {
     allowedOrigins: 'https://gnklv.github.io,http://localhost:5180',
     vapidPublicKey: 'public-key',
@@ -26,8 +20,6 @@ beforeEach(() => {
       subscriptions: new InMemorySubscriptions(),
       snapshots: new InMemorySnapshots(),
       secrets: fakeSecrets,
-      push,
-      background,
       now: () => new Date(),
     }),
   }
@@ -86,17 +78,6 @@ describe('router', () => {
     })
   })
 
-  it('registers a device, saves a subscription and sends a test push', async () => {
-    const auth = await register()
-    expect(
-      (await call('PUT', '/devices/me/push-subscription', { auth, body: subscription })).status,
-    ).toBe(204)
-
-    const response = await call('POST', '/devices/me/test-push', { auth, body: { locale: 'ru' } })
-    expect(await response.json()).toEqual({ result: 'sent' })
-    expect(push.sent[0]?.payload).toEqual({ type: 'test', locale: 'ru' })
-  })
-
   it('rejects device routes without valid credentials', async () => {
     const auth = await register()
     const [, deviceId] = /^Bearer ([^.]+)\./.exec(auth)!
@@ -112,7 +93,9 @@ describe('router', () => {
     expect(
       (await call('PUT', '/devices/me/push-subscription', { body: subscription })).status,
     ).toBe(401)
-    expect((await call('POST', '/devices/me/test-push', { auth: 'Bearer a.b' })).status).toBe(401)
+    expect(
+      (await call('DELETE', '/devices/me/push-subscription', { auth: 'Bearer a.b' })).status,
+    ).toBe(401)
   })
 
   it('maps bad input to 4xx', async () => {
@@ -123,53 +106,6 @@ describe('router', () => {
     expect((await call('PUT', '/devices/me/push-subscription', { auth, body: {} })).status).toBe(
       400,
     )
-    expect(
-      (await call('POST', '/devices/me/test-push', { auth, body: { locale: 'de' } })).status,
-    ).toBe(400)
-    expect(
-      (await call('POST', '/devices/me/test-push', { auth, body: { locale: 'en' } })).status,
-    ).toBe(409)
-  })
-
-  it('schedules a delayed test push and sends it after the response', async () => {
-    const auth = await register()
-    await call('PUT', '/devices/me/push-subscription', { auth, body: subscription })
-
-    const response = await call('POST', '/devices/me/test-push', {
-      auth,
-      body: { locale: 'ru', delaySeconds: 10 },
-    })
-    expect(response.status).toBe(202)
-    expect(push.sent).toHaveLength(0)
-
-    await background.runAll()
-    expect(push.sent[0]?.payload).toEqual({ type: 'test', locale: 'ru' })
-  })
-
-  it('validates the delay and refuses to schedule without a subscription', async () => {
-    const auth = await register()
-    for (const delaySeconds of [-1, 21, 1.5, '10']) {
-      const response = await call('POST', '/devices/me/test-push', {
-        auth,
-        body: { locale: 'en', delaySeconds },
-      })
-      expect(response.status, String(delaySeconds)).toBe(400)
-    }
-    const response = await call('POST', '/devices/me/test-push', {
-      auth,
-      body: { locale: 'en', delaySeconds: 5 },
-    })
-    expect(response.status).toBe(409)
-    expect(background.pending).toHaveLength(0)
-  })
-
-  it('reports a subscription the push service has forgotten', async () => {
-    const auth = await register()
-    await call('PUT', '/devices/me/push-subscription', { auth, body: subscription })
-    push.result = 'gone'
-    expect(
-      (await call('POST', '/devices/me/test-push', { auth, body: { locale: 'en' } })).status,
-    ).toBe(410)
   })
 
   it('PUT /devices/me/snapshot validates and stores the snapshot', async () => {

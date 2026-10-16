@@ -30,7 +30,6 @@ import {
   ClockKey,
   InitialSettingsKey,
   NotificationsKey,
-  PushKey,
   UseCasesKey,
   type AppUseCases,
 } from '../di'
@@ -61,7 +60,6 @@ beforeEach(() => {
   const push: PushAccess = {
     status: async () => (pushOn ? 'on' : 'off'),
     enable: async () => {},
-    sendTest: async () => {},
     syncSnapshot: async (snapshot) => {
       sent.push(snapshot)
     },
@@ -106,9 +104,7 @@ beforeEach(() => {
     .provide(NotificationsKey, {
       permission: () => 'granted',
       requestPermission: async () => 'granted',
-      show: async () => {},
     })
-    .provide(PushKey, push)
     .use(createPinia())
 })
 

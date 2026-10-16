@@ -6,8 +6,6 @@ import type { PushTitlesSource } from './ports'
 
 const texts = (locale: string): PushTexts => ({
   appName: `${locale}:app`,
-  testTitle: `${locale}:test-title`,
-  testBody: `${locale}:test-body`,
   fallback: (mood) => `${locale}:fallback:${mood}`,
 })
 
@@ -79,13 +77,6 @@ describe('composePush', () => {
     titles.byDate = {}
     const late = { ...nudge, pressure: { ...pressure, overdue: true, minutesLeft: 0 } }
     expect(await compose(late)).toEqual({ title: 'ru:overdue', body: 'ru:fallback:overdue' })
-  })
-
-  it('shows the test push in its locale', async () => {
-    expect(await compose({ type: 'test', locale: 'en' })).toEqual({
-      title: 'en:test-title',
-      body: 'en:test-body',
-    })
   })
 
   it('still shows something for data it does not understand, in its locale if known', async () => {
