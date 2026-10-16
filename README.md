@@ -44,17 +44,8 @@ tuktuk/
 │  └─ worker/      Cloudflare Worker + D1 — push reminders (in progress)
 ```
 
-Conventions:
-
-- Use cases are plain factories: `makeCompleteTask({ taskRepo, clock }) → (taskId) => …`. No DI framework.
-- Domain is fully unit-tested; use cases are tested with in-memory fakes of the ports.
-- Never call `new Date()` inside core — use the injected `Clock`.
-- No abstraction until there's a second implementation or a test needs it.
-- Layer boundaries are enforced by `no-restricted-imports` in `eslint.config.js`.
-- All text lives in `@tuktuk/i18n`, one dictionary per locale. Core decides _what_ a reminder says
-  (mood, which task, no repeats) and gets the wording through the `NudgeCopy` port. Every locale
-  must match the English dictionary's shape, down to the number of reminder variants — enforced by
-  the compiler.
+The full set of rules — layers, validation, privacy, platform constraints, UI, testing — is in
+[docs/CONVENTIONS.md](docs/CONVENTIONS.md).
 
 ## Design system
 
