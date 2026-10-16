@@ -38,3 +38,10 @@ export interface UiPrefs {
   summarySeenOn(): LocalDate | null
   markSummarySeen(date: LocalDate): void
 }
+
+/** What the Service Worker reads to word a reminder: local titles and the last message. */
+export interface PushTitlesSource {
+  forDate(date: LocalDate): Promise<readonly string[]>
+  lastMessageId(): Promise<string | null>
+  setLastMessageId(id: string): Promise<void>
+}

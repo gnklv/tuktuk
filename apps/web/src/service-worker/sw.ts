@@ -7,14 +7,8 @@ import {
 } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { clientsClaim } from 'workbox-core'
-import {
-  DEFAULT_LOCALE,
-  composeNudge,
-  nudgeMood,
-  parsePushPayload,
-  type PushPayload,
-} from '@tuktuk/core'
 import { messages, nudgeCopy } from '@tuktuk/i18n'
+import { makeComposePush } from '../application/compose-push'
 import { IndexedDbReminderTitles } from '../infrastructure/indexed-db-reminder-titles'
 
 declare const self: ServiceWorkerGlobalScope
@@ -30,14 +24,25 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 void self.skipWaiting()
 clientsClaim()
 
-const reminderTitles = new IndexedDbReminderTitles()
+// Composition root of the Service Worker.
+const composePush = makeComposePush({
+  titles: new IndexedDbReminderTitles(),
+  copy: nudgeCopy,
+  texts: (locale) => {
+    const dict = messages[locale]
+    return {
+      appName: dict.app.name,
+      testTitle: dict.reminders.push.testTitle,
+      testBody: dict.reminders.push.testBody,
+      fallback: (mood) => dict.mascot[mood],
+    }
+  },
+  random: Math.random,
+})
 
 const asset = (path: string) => new URL(path, self.registration.scope).href
 
-/**
- * A push from the server. The payload carries no task titles — the text is composed here,
- * on the device. Every push must show a notification: iOS revokes push access otherwise.
- */
+/** A push from the server: the text is composed on the device (see compose-push.ts). */
 self.addEventListener('push', (event) => {
   let data: unknown = null
   try {
@@ -46,7 +51,7 @@ self.addEventListener('push', (event) => {
     // not JSON — falls through to the generic notification
   }
   event.waitUntil(
-    compose(parsePushPayload(data)).then(({ title, body }) =>
+    composePush(data).then(({ title, body }) =>
       self.registration.showNotification(title, {
         body,
         icon: asset('pwa-192x192.png'),
@@ -57,35 +62,6 @@ self.addEventListener('push', (event) => {
     ),
   )
 })
-
-async function compose(payload: PushPayload | null): Promise<{ title: string; body: string }> {
-  const dict = messages[payload?.locale ?? DEFAULT_LOCALE]
-  if (!payload) return { title: dict.app.name, body: '' }
-  if (payload.type === 'test') {
-    return { title: dict.reminders.push.testTitle, body: dict.reminders.push.testBody }
-  }
-
-  // A reminder: the same wording rules as in the app, with titles that never left the device.
-  try {
-    const pendingTitles = await reminderTitles.forDate(payload.date)
-    if (pendingTitles.length > 0) {
-      const message = composeNudge(nudgeCopy, {
-        locale: payload.locale,
-        pressure: payload.pressure,
-        pendingTitles,
-        previousId: await reminderTitles.lastMessageId(),
-        random: Math.random,
-      })
-      await reminderTitles.setLastMessageId(message.id)
-      return message
-    }
-  } catch (error) {
-    console.warn('[sw] could not read local titles', error)
-  }
-  // No local titles (storage was cleared): the mascot's line for this mood.
-  const mood = nudgeMood(payload.pressure)
-  return { title: nudgeCopy.title(payload.locale, mood), body: dict.mascot[mood] }
-}
 
 // Tapping a reminder opens the app (or focuses it if it's already open).
 self.addEventListener('notificationclick', (event) => {

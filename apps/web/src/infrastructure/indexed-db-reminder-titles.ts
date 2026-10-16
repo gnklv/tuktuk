@@ -1,11 +1,11 @@
 import type { LocalDate, PendingTitles } from '@tuktuk/core'
-import type { LocalTitlesStore } from '../application/ports'
+import type { LocalTitlesStore, PushTitlesSource } from '../application/ports'
 
 /**
  * Pending task titles kept in IndexedDB for the Service Worker, which composes push texts
  * on the device (it can't read localStorage). Used by both the app and the Service Worker.
  */
-export class IndexedDbReminderTitles implements LocalTitlesStore {
+export class IndexedDbReminderTitles implements LocalTitlesStore, PushTitlesSource {
   private static readonly DB = 'tuktuk'
   private static readonly STORE = 'kv'
   private static readonly TITLES = 'pending-titles'
