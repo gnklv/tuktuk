@@ -6,7 +6,7 @@ import {
   type DayResult,
   type Streak,
 } from '../../domain/streak'
-import { buildDayOverview } from '../../domain/day-overview'
+import { makeLoadHistory } from '../history'
 import type { CompletionRepository } from '../ports/completion-repository'
 import type { TaskRepository } from '../ports/task-repository'
 
@@ -21,22 +21,26 @@ export interface StreakOverview {
   }
 }
 
-export const makeGetStreak =
-  (deps: { taskRepo: TaskRepository; completionRepo: CompletionRepository }) =>
-  async (today: LocalDate): Promise<StreakOverview> => {
+export const makeGetStreak = (deps: {
+  taskRepo: TaskRepository
+  completionRepo: CompletionRepository
+}) => {
+  const loadHistory = makeLoadHistory(deps)
+  return async (today: LocalDate): Promise<StreakOverview> => {
     const yesterday = addDays(today, -1)
-    const [tasks, completions] = await Promise.all([
-      deps.taskRepo.getAll(),
-      deps.completionRepo.getInRange(addDays(today, -(STREAK_LOOKBACK_DAYS - 1)), today),
-    ])
-    const day = buildDayOverview(yesterday, tasks, completions)
+    const { tasks, completions, day } = await loadHistory(
+      addDays(today, -(STREAK_LOOKBACK_DAYS - 1)),
+      today,
+    )
+    const yesterdayOverview = day(yesterday)
     return {
       streak: computeStreak(today, tasks, completions),
       yesterday: {
         date: yesterday,
         result: dayResult(yesterday, tasks, completions),
-        done: day.doneCount,
-        total: day.items.length,
+        done: yesterdayOverview.doneCount,
+        total: yesterdayOverview.items.length,
       },
     }
   }
+}

@@ -35,3 +35,8 @@ export function buildDayOverview(
     doneCount: items.filter((item) => item.completedAt !== null).length,
   }
 }
+
+export const pendingCount = (day: DayOverview): number => day.items.length - day.doneCount
+
+export const pendingTitles = (day: DayOverview): string[] =>
+  day.items.filter((item) => item.completedAt === null).map((item) => item.task.title)

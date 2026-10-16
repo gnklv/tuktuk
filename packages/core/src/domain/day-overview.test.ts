@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDayOverview } from './day-overview'
+import { buildDayOverview, pendingCount, pendingTitles } from './day-overview'
 import { createTask, type TaskId, type TaskSchedule } from './task'
 import type { LocalDate } from './local-date'
 
@@ -37,5 +37,19 @@ describe('buildDayOverview', () => {
     ])
     expect(overview.items.map((i) => i.completedAt)).toEqual([null, at])
     expect(overview.doneCount).toBe(1)
+  })
+})
+
+describe('pendingCount / pendingTitles', () => {
+  it('describe what is left to do', () => {
+    const t1 = task('Call mom', { kind: 'once', date: today }, '2026-10-14T08:00:00Z')
+    const t2 = task('Pay bills', { kind: 'once', date: today }, '2026-10-14T09:00:00Z')
+    const day = buildDayOverview(
+      today,
+      [t1, t2],
+      [{ taskId: t1.id, date: today, completedAt: new Date('2026-10-14T12:00:00Z') }],
+    )
+    expect(pendingCount(day)).toBe(1)
+    expect(pendingTitles(day)).toEqual(['Pay bills'])
   })
 })

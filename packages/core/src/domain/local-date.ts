@@ -45,3 +45,8 @@ export function addDays(date: LocalDate, days: number): LocalDate {
   utc.setUTCDate(utc.getUTCDate() + days)
   return utc.toISOString().slice(0, 10) as LocalDate
 }
+
+/** `count` consecutive dates starting with `start`. */
+export function datesFrom(start: LocalDate, count: number): LocalDate[] {
+  return Array.from({ length: count }, (_, i) => addDays(start, i))
+}

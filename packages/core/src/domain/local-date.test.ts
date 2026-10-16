@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, parseLocalDate, toLocalDate, weekdayOf, type LocalDate } from './local-date'
+import {
+  addDays,
+  datesFrom,
+  parseLocalDate,
+  toLocalDate,
+  weekdayOf,
+  type LocalDate,
+} from './local-date'
 import { DomainError } from './shared/domain-error'
 
 const d = (s: string) => s as LocalDate
@@ -44,5 +51,12 @@ describe('addDays', () => {
   it('is not affected by DST transitions', () => {
     // Europe switches to winter time on 2026-10-25.
     expect(addDays(d('2026-10-24'), 2)).toBe('2026-10-26')
+  })
+})
+
+describe('datesFrom', () => {
+  it('lists consecutive dates across a month boundary', () => {
+    expect(datesFrom(d('2026-10-30'), 3)).toEqual(['2026-10-30', '2026-10-31', '2026-11-01'])
+    expect(datesFrom(d('2026-10-30'), 0)).toEqual([])
   })
 })

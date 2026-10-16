@@ -1,8 +1,9 @@
-import { buildDayOverview } from '../../domain/day-overview'
+import { pendingTitles as pendingTitlesOf } from '../../domain/day-overview'
 import { toLocalDate } from '../../domain/local-date'
 import { composeNudge, type NudgeCopy } from '../../domain/nudge-messages'
 import { computePressure, nextNudgeAt } from '../../domain/pressure'
 import type { Settings } from '../../domain/settings'
+import { makeLoadHistory } from '../history'
 import type { Clock } from '../ports/clock'
 import type { CompletionRepository } from '../ports/completion-repository'
 import type { Notifier } from '../ports/notifier'
@@ -30,28 +31,24 @@ export interface CheckNudgeResult {
 }
 
 /** Decides whether it's time to remind, and if so, reminds. Safe to call as often as you like. */
-export const makeCheckNudge =
-  (deps: {
-    clock: Clock
-    taskRepo: TaskRepository
-    completionRepo: CompletionRepository
-    nudgeLog: NudgeLogRepository
-    notifier: Notifier
-    /** Reminder wording, from `@tuktuk/i18n`. */
-    copy: NudgeCopy
-    random: () => number
-  }) =>
-  async ({ settings, delivery }: CheckNudgeInput): Promise<CheckNudgeResult> => {
+export const makeCheckNudge = (deps: {
+  clock: Clock
+  taskRepo: TaskRepository
+  completionRepo: CompletionRepository
+  nudgeLog: NudgeLogRepository
+  notifier: Notifier
+  /** Reminder wording, from `@tuktuk/i18n`. */
+  copy: NudgeCopy
+  random: () => number
+}) => {
+  const loadHistory = makeLoadHistory(deps)
+  return async ({ settings, delivery }: CheckNudgeInput): Promise<CheckNudgeResult> => {
     const now = deps.clock.now()
     const today = toLocalDate(now, settings.timeZone)
-    const [tasks, completions, last] = await Promise.all([
-      deps.taskRepo.getAll(),
-      deps.completionRepo.getByDate(today),
-      deps.nudgeLog.getLast(),
-    ])
+    const [history, last] = await Promise.all([loadHistory(today, today), deps.nudgeLog.getLast()])
 
-    const day = buildDayOverview(today, tasks, completions)
-    const pendingTitles = day.items.filter((i) => i.completedAt === null).map((i) => i.task.title)
+    const day = history.day(today)
+    const pendingTitles = pendingTitlesOf(day)
     const counts = { pending: pendingTitles.length, total: day.items.length }
     const lastToday = last?.date === today ? last : null
 
@@ -70,3 +67,4 @@ export const makeCheckNudge =
 
     return { nudged: true, nextAt: nextNudgeAt({ now, settings, ...counts, lastNudgeAt: now }) }
   }
+}
