@@ -1,5 +1,6 @@
-import { parseReminderSnapshot, type Locale } from '@tuktuk/core'
+import { isLocale, parseReminderSnapshot, type Locale } from '@tuktuk/core'
 import type {
+  BackgroundTasks,
   DeviceRepository,
   PushResult,
   PushSender,
@@ -15,14 +16,38 @@ export interface DevicesDeps {
   snapshots: SnapshotRepository
   secrets: Secrets
   push: PushSender
+  background: BackgroundTasks
   now: () => Date
 }
 
-export class InvalidSubscriptionError extends Error {}
-export class NoSubscriptionError extends Error {}
-export class InvalidSnapshotError extends Error {}
+/** Every way a device request can be rejected. The http layer maps codes to statuses. */
+export type DeviceErrorCode =
+  | 'invalid_subscription'
+  | 'invalid_snapshot'
+  | 'invalid_locale'
+  | 'invalid_delay'
+  | 'no_subscription'
+
+export class DeviceError extends Error {
+  constructor(readonly code: DeviceErrorCode) {
+    super(code)
+    this.name = 'DeviceError'
+  }
+}
+
+/** Delayed test pushes let you lock the phone first. Workers finish deferred work within ~30 s. */
+export const MAX_TEST_PUSH_DELAY_SECONDS = 20
 
 export function makeDeviceUseCases(deps: DevicesDeps) {
+  async function sendTestPush(deviceId: string, locale: Locale): Promise<PushResult> {
+    const subscription = await deps.subscriptions.get(deviceId)
+    if (!subscription) throw new DeviceError('no_subscription')
+    const result = await deps.push.send(subscription, { type: 'test', locale })
+    // A subscription the push service has forgotten is cleaned up.
+    if (result === 'gone') await deps.subscriptions.remove(deviceId)
+    return result
+  }
+
   return {
     /** A new installed copy of the app. The token is returned once and never stored. */
     async register(): Promise<{ deviceId: string; token: string }> {
@@ -36,14 +61,10 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
       return { deviceId, token }
     },
 
-    /** `Bearer <deviceId>.<token>` → device id, or `null` if the credentials are wrong. */
-    async authenticate(authorization: string | null): Promise<string | null> {
-      const match = /^Bearer ([\w-]+)\.([\w-]+)$/.exec(authorization ?? '')
-      if (!match) return null
-      const [, deviceId, token] = match as unknown as [string, string, string]
+    /** Whether the token belongs to the device. */
+    async authenticate(deviceId: string, token: string): Promise<boolean> {
       const device = await deps.devices.findById(deviceId)
-      if (!device) return null
-      return deps.secrets.equal(device.tokenHash, await deps.secrets.hash(token)) ? deviceId : null
+      return device !== null && deps.secrets.equal(device.tokenHash, await deps.secrets.hash(token))
     },
 
     async saveSubscription(deviceId: string, input: unknown): Promise<void> {
@@ -55,22 +76,34 @@ export function makeDeviceUseCases(deps: DevicesDeps) {
     /** Replaces the device's reminder snapshot (settings and counts, no titles). */
     async saveSnapshot(deviceId: string, input: unknown): Promise<void> {
       const snapshot = parseReminderSnapshot(input)
-      if (!snapshot) throw new InvalidSnapshotError()
+      if (!snapshot) throw new DeviceError('invalid_snapshot')
       await deps.snapshots.save(deviceId, snapshot, deps.now())
     },
 
-    /** Throws `NoSubscriptionError` if the device has no push subscription. */
-    async ensureSubscription(deviceId: string): Promise<void> {
-      if (!(await deps.subscriptions.get(deviceId))) throw new NoSubscriptionError()
-    },
+    /**
+     * Sends a test push now, or schedules it after `delaySeconds` (so the phone can be locked
+     * first). A missing subscription is reported right away, not lost in the background.
+     */
+    async requestTestPush(
+      deviceId: string,
+      input: { locale?: unknown; delaySeconds?: unknown },
+    ): Promise<PushResult | 'scheduled'> {
+      const { locale, delaySeconds = 0 } = input
+      if (typeof locale !== 'string' || !isLocale(locale)) throw new DeviceError('invalid_locale')
+      if (
+        !Number.isInteger(delaySeconds) ||
+        (delaySeconds as number) < 0 ||
+        (delaySeconds as number) > MAX_TEST_PUSH_DELAY_SECONDS
+      ) {
+        throw new DeviceError('invalid_delay')
+      }
 
-    /** Sends a test push. A subscription the push service has forgotten is cleaned up. */
-    async sendTestPush(deviceId: string, locale: Locale): Promise<PushResult> {
-      const subscription = await deps.subscriptions.get(deviceId)
-      if (!subscription) throw new NoSubscriptionError()
-      const result = await deps.push.send(subscription, { type: 'test', locale })
-      if (result === 'gone') await deps.subscriptions.remove(deviceId)
-      return result
+      if (delaySeconds === 0) return sendTestPush(deviceId, locale)
+      if (!(await deps.subscriptions.get(deviceId))) throw new DeviceError('no_subscription')
+      deps.background.runLater((delaySeconds as number) * 1000, () =>
+        sendTestPush(deviceId, locale),
+      )
+      return 'scheduled'
     },
   }
 }
@@ -88,7 +121,7 @@ function parseSubscription(input: unknown): PushSubscriptionData {
     keys.p256dh.length > 200 ||
     keys.auth.length > 100
   ) {
-    throw new InvalidSubscriptionError()
+    throw new DeviceError('invalid_subscription')
   }
   return { endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth } }
 }

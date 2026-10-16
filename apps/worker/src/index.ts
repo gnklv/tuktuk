@@ -26,6 +26,15 @@ export default {
       snapshots: new D1SnapshotRepository(env.DB),
       secrets: webCryptoSecrets,
       push: pushSender(env),
+      background: {
+        runLater: (delayMs, task) =>
+          ctx.waitUntil(
+            scheduler
+              .wait(delayMs)
+              .then(task)
+              .catch((error: unknown) => console.error('[background] task failed', error)),
+          ),
+      },
       now: () => new Date(),
     })
 
@@ -36,8 +45,6 @@ export default {
         await env.DB.prepare('SELECT 1').first()
       },
       devices,
-      defer: (task) => ctx.waitUntil(task),
-      sleep: (ms) => scheduler.wait(ms),
     })
   },
 

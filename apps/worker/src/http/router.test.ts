@@ -5,25 +5,19 @@ import {
   InMemoryDevices,
   InMemorySnapshots,
   InMemorySubscriptions,
+  ManualBackground,
   RecordingPushSender,
   fakeSecrets,
 } from '../application/fakes'
 
 let deps: HttpDeps
 let push: RecordingPushSender
-let deferred: Promise<unknown>[]
-/** Resolves pending `sleep()` calls — lets a test decide when the delay is over. */
-let wakeUp: () => void
+let background: ManualBackground
 
 beforeEach(() => {
   push = new RecordingPushSender()
-  deferred = []
+  background = new ManualBackground()
   deps = {
-    defer: (task) => deferred.push(task),
-    sleep: () =>
-      new Promise<void>((resolve) => {
-        wakeUp = resolve
-      }),
     allowedOrigins: 'https://gnklv.github.io,http://localhost:5180',
     vapidPublicKey: 'public-key',
     pingDatabase: async () => {},
@@ -33,6 +27,7 @@ beforeEach(() => {
       snapshots: new InMemorySnapshots(),
       secrets: fakeSecrets,
       push,
+      background,
       now: () => new Date(),
     }),
   }
@@ -103,6 +98,17 @@ describe('router', () => {
   })
 
   it('rejects device routes without valid credentials', async () => {
+    const auth = await register()
+    const [, deviceId] = /^Bearer ([^.]+)\./.exec(auth)!
+    for (const header of [
+      'garbage',
+      `Bearer ${deviceId}`,
+      `Bearer ${deviceId}.wrong`,
+      'Bearer a.b.c',
+    ]) {
+      const response = await call('PUT', '/devices/me/snapshot', { auth: header, body: {} })
+      expect(response.status, header).toBe(401)
+    }
     expect(
       (await call('PUT', '/devices/me/push-subscription', { body: subscription })).status,
     ).toBe(401)
@@ -136,8 +142,7 @@ describe('router', () => {
     expect(response.status).toBe(202)
     expect(push.sent).toHaveLength(0)
 
-    wakeUp()
-    await Promise.all(deferred)
+    await background.runAll()
     expect(push.sent[0]?.payload).toEqual({ type: 'test', locale: 'ru' })
   })
 
@@ -155,7 +160,7 @@ describe('router', () => {
       body: { locale: 'en', delaySeconds: 5 },
     })
     expect(response.status).toBe(409)
-    expect(deferred).toHaveLength(0)
+    expect(background.pending).toHaveLength(0)
   })
 
   it('reports a subscription the push service has forgotten', async () => {

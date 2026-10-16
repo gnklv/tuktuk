@@ -1,5 +1,6 @@
 // In-memory implementations of the worker's ports, for tests.
 import type {
+  BackgroundTasks,
   Device,
   DeviceRepository,
   NudgeTarget,
@@ -73,4 +74,16 @@ export const fakeSecrets: Secrets = {
   newToken: () => `token-${counter}`,
   hash: async (token) => `hash(${token})`,
   equal: (a, b) => a === b,
+}
+
+/** Collects deferred tasks; `runAll()` plays them, as if the delay had passed. */
+export class ManualBackground implements BackgroundTasks {
+  readonly pending: { delayMs: number; task: () => Promise<unknown> }[] = []
+  runLater(delayMs: number, task: () => Promise<unknown>) {
+    this.pending.push({ delayMs, task })
+  }
+  async runAll() {
+    const tasks = this.pending.splice(0)
+    await Promise.all(tasks.map(({ task }) => task()))
+  }
 }
