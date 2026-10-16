@@ -1,6 +1,12 @@
-import type { Locale } from './locale'
+import { isLocale, type Locale } from './locale'
 import { DomainError } from './shared/domain-error'
-import { isWithinRange, timeOfDay, type TimeOfDay, type TimeRange } from './time-of-day'
+import {
+  isWithinRange,
+  timeOfDay,
+  toTimeOfDayStrict,
+  type TimeOfDay,
+  type TimeRange,
+} from './time-of-day'
 
 export const THEMES = ['system', 'light', 'dark'] as const
 export type Theme = (typeof THEMES)[number]
@@ -47,5 +53,42 @@ export function validateSettings(settings: Settings): void {
     ) {
       throw new DomainError('settings.deadlineInQuietHours')
     }
+  }
+}
+
+/**
+ * Rebuilds settings from untrusted data (storage, network) with every rule of `changeSettings`.
+ * Throws if anything is off.
+ */
+export function restoreSettings(value: unknown): Settings {
+  const { locale, timeZone, dayDeadline, quietHours, theme } = (value ?? {}) as Record<
+    string,
+    unknown
+  >
+  if (typeof locale !== 'string' || !isLocale(locale)) throw new Error('settings locale')
+  if (typeof timeZone !== 'string' || !isTimeZone(timeZone)) throw new Error('settings timeZone')
+  if (!THEMES.includes(theme as Theme)) throw new Error('settings theme')
+  const settings: Settings = {
+    locale,
+    timeZone,
+    dayDeadline: toTimeOfDayStrict(dayDeadline),
+    quietHours: quietHours === null ? null : restoreRange(quietHours),
+    theme: theme as Theme,
+  }
+  validateSettings(settings)
+  return settings
+}
+
+function restoreRange(value: unknown): TimeRange {
+  const { start, end } = (value ?? {}) as Record<string, unknown>
+  return { start: toTimeOfDayStrict(start), end: toTimeOfDayStrict(end) }
+}
+
+function isTimeZone(timeZone: string): boolean {
+  try {
+    new Intl.DateTimeFormat('en', { timeZone })
+    return true
+  } catch {
+    return false
   }
 }

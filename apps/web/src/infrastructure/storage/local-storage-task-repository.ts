@@ -1,4 +1,10 @@
-import type { LocalDate, Task, TaskId, TaskRepository, TaskSchedule } from '@tuktuk/core'
+import {
+  restoreTask,
+  type Task,
+  type TaskId,
+  type TaskRepository,
+  type TaskSchedule,
+} from '@tuktuk/core'
 import { STORAGE_KEYS, parseList, readJson, writeJson } from './json-storage'
 
 interface TaskDto {
@@ -22,20 +28,19 @@ const toDto = (task: Task): TaskDto => ({
 })
 
 const fromDto = (value: unknown): Task => {
-  const dto = value as TaskDto
-  if (typeof dto.id !== 'string' || typeof dto.title !== 'string' || !dto.schedule) {
-    throw new Error('invalid task')
-  }
-  return {
-    id: dto.id as TaskId,
+  const dto = (value ?? {}) as Partial<TaskDto>
+  const createdAt = typeof dto.createdAt === 'string' ? dto.createdAt : ''
+  return restoreTask({
+    id: dto.id,
     title: dto.title,
     schedule: dto.schedule,
-    required: dto.required !== false,
-    createdAt: new Date(dto.createdAt),
-    // Old data: the UTC creation date is a close enough approximation.
-    activeFrom: (dto.activeFrom ?? dto.createdAt.slice(0, 10)) as LocalDate,
-    ...(dto.archivedOn && { archivedOn: dto.archivedOn as LocalDate }),
-  }
+    // Stored before `required` could be false: missing means required.
+    required: dto.required ?? true,
+    createdAt: new Date(createdAt),
+    // Stored before habits existed: the UTC creation date is a close enough approximation.
+    activeFrom: dto.activeFrom ?? createdAt.slice(0, 10),
+    ...(dto.archivedOn !== undefined && { archivedOn: dto.archivedOn }),
+  })
 }
 
 export class LocalStorageTaskRepository implements TaskRepository {

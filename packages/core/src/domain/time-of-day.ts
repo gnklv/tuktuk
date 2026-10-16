@@ -56,3 +56,11 @@ export function isWithinRange(time: TimeOfDay, range: TimeRange): boolean {
   const { start, end } = range
   return start <= end ? time >= start && time < end : time >= start || time < end
 }
+
+/** Validates an untrusted value (storage, network) as a time of day. */
+export function toTimeOfDayStrict(value: unknown): TimeOfDay {
+  if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > MINUTES_IN_DAY) {
+    throw new DomainError('timeOfDay.invalid')
+  }
+  return value as TimeOfDay
+}

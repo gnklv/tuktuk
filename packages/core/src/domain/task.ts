@@ -73,7 +73,7 @@ function normalizeTitle(title: string): string {
 }
 
 function normalizeSchedule(schedule: TaskSchedule): TaskSchedule {
-  switch (schedule.kind) {
+  switch (schedule?.kind) {
     case 'once':
       return { kind: 'once', date: parseLocalDate(schedule.date) }
     case 'weekly': {
@@ -84,5 +84,39 @@ function normalizeSchedule(schedule: TaskSchedule): TaskSchedule {
       }
       return { kind: 'weekly', weekdays }
     }
+    default:
+      throw new Error(`unknown schedule: ${JSON.stringify(schedule)}`)
+  }
+}
+
+/** A task as read from storage: types already decoded (dates are `Date`s), nothing validated. */
+export interface StoredTask {
+  id: unknown
+  title: unknown
+  schedule: unknown
+  required: unknown
+  createdAt: Date
+  activeFrom: unknown
+  archivedOn?: unknown
+}
+
+/**
+ * Rebuilds a task from storage with the same rules as `createTask`.
+ * Throws on corrupted data, so a broken record can't reach the rest of the domain.
+ */
+export function restoreTask(stored: StoredTask): Task {
+  const { id, title, schedule, required, createdAt, activeFrom, archivedOn } = stored
+  if (typeof id !== 'string' || id === '') throw new Error('task id')
+  if (typeof title !== 'string') throw new Error('task title')
+  if (typeof required !== 'boolean') throw new Error('task required')
+  if (Number.isNaN(createdAt.getTime())) throw new Error('task createdAt')
+  return {
+    id: id as TaskId,
+    title: normalizeTitle(title),
+    schedule: normalizeSchedule(schedule as TaskSchedule),
+    required,
+    createdAt,
+    activeFrom: parseLocalDate(String(activeFrom)),
+    ...(archivedOn !== undefined && { archivedOn: parseLocalDate(String(archivedOn)) }),
   }
 }

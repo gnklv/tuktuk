@@ -1,4 +1,10 @@
-import type { Completion, CompletionRepository, LocalDate, TaskId } from '@tuktuk/core'
+import {
+  restoreCompletion,
+  type Completion,
+  type CompletionRepository,
+  type LocalDate,
+  type TaskId,
+} from '@tuktuk/core'
 import { STORAGE_KEYS, parseList, readJson, writeJson } from './json-storage'
 
 interface CompletionDto {
@@ -14,15 +20,12 @@ const toDto = (c: Completion): CompletionDto => ({
 })
 
 const fromDto = (value: unknown): Completion => {
-  const dto = value as CompletionDto
-  if (typeof dto.taskId !== 'string' || typeof dto.date !== 'string') {
-    throw new Error('invalid completion')
-  }
-  return {
-    taskId: dto.taskId as TaskId,
-    date: dto.date as LocalDate,
-    completedAt: new Date(dto.completedAt),
-  }
+  const dto = (value ?? {}) as Partial<CompletionDto>
+  return restoreCompletion({
+    taskId: dto.taskId,
+    date: dto.date,
+    completedAt: new Date(typeof dto.completedAt === 'string' ? dto.completedAt : ''),
+  })
 }
 
 export class LocalStorageCompletionRepository implements CompletionRepository {

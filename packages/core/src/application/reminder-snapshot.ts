@@ -1,7 +1,5 @@
 import { parseLocalDate, type LocalDate } from '../domain/local-date'
-import { isLocale } from '../domain/locale'
-import { validateSettings, type Settings } from '../domain/settings'
-import { MINUTES_IN_DAY, type TimeOfDay, type TimeRange } from '../domain/time-of-day'
+import { restoreSettings, type Settings } from '../domain/settings'
 
 /**
  * What the push server needs to decide when to remind: settings and task counts.
@@ -46,30 +44,12 @@ export function parseReminderSnapshot(data: unknown): ReminderSnapshot | null {
 }
 
 function parseSettings(value: unknown): ReminderSettings {
-  const { locale, timeZone, dayDeadline, quietHours } = value as Record<string, unknown>
-  if (typeof locale !== 'string' || !isLocale(locale)) throw new Error('locale')
-  if (typeof timeZone !== 'string') throw new Error('timeZone')
-  new Intl.DateTimeFormat('en', { timeZone }) // throws on an unknown timezone
-  const settings: ReminderSettings = {
-    locale,
-    timeZone,
-    dayDeadline: parseTime(dayDeadline),
-    quietHours: quietHours === null ? null : parseRange(quietHours),
-  }
-  validateSettings({ ...settings, theme: 'system' })
-  return settings
-}
-
-function parseRange(value: unknown): TimeRange {
-  const { start, end } = value as Record<string, unknown>
-  return { start: parseTime(start), end: parseTime(end) }
-}
-
-function parseTime(value: unknown): TimeOfDay {
-  if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > MINUTES_IN_DAY) {
-    throw new Error('time')
-  }
-  return value as TimeOfDay
+  // Same rules as stored settings; the theme is irrelevant to the server.
+  const { locale, timeZone, dayDeadline, quietHours } = restoreSettings({
+    ...(value as object),
+    theme: 'system',
+  })
+  return { locale, timeZone, dayDeadline, quietHours }
 }
 
 function parseDay(value: unknown): DayCounts {

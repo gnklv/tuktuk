@@ -34,8 +34,10 @@ export {
   renameTask,
   archiveTask,
   isScheduledOn,
+  restoreTask,
 } from './domain/task'
-export type { Task, TaskId, TaskSchedule, NewTaskInput } from './domain/task'
+export type { Task, TaskId, TaskSchedule, NewTaskInput, StoredTask } from './domain/task'
+export { restoreCompletion } from './domain/completion'
 export type { Completion } from './domain/completion'
 export { composeNudge, nudgeMood } from './domain/nudge-messages'
 export type { NudgeCopy, NudgeMessage, NudgeMood, ComposeNudgeInput } from './domain/nudge-messages'
@@ -43,7 +45,13 @@ export { buildDayOverview } from './domain/day-overview'
 export type { DayItem, DayOverview } from './domain/day-overview'
 export { STREAK_LOOKBACK_DAYS, computeStreak, dayResult } from './domain/streak'
 export type { DayResult, Streak } from './domain/streak'
-export { THEMES, createDefaultSettings, changeSettings, validateSettings } from './domain/settings'
+export {
+  THEMES,
+  createDefaultSettings,
+  changeSettings,
+  validateSettings,
+  restoreSettings,
+} from './domain/settings'
 export type { Settings, Theme } from './domain/settings'
 
 // Application ports

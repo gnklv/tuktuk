@@ -1,4 +1,4 @@
-import type { LocalDate, NudgeLogEntry, NudgeLogRepository } from '@tuktuk/core'
+import { parseLocalDate, type NudgeLogEntry, type NudgeLogRepository } from '@tuktuk/core'
 import { STORAGE_KEYS, readJson, writeJson } from './json-storage'
 
 interface NudgeLogDto {
@@ -14,8 +14,14 @@ export class LocalStorageNudgeLogRepository implements NudgeLogRepository {
 
   async getLast(): Promise<NudgeLogEntry | null> {
     const dto = readJson(this.storage, this.key) as Partial<NudgeLogDto> | null
-    if (!dto || typeof dto.date !== 'string' || typeof dto.at !== 'string') return null
-    return { date: dto.date as LocalDate, at: new Date(dto.at), messageId: dto.messageId ?? '' }
+    if (!dto || typeof dto.at !== 'string') return null
+    try {
+      const at = new Date(dto.at)
+      if (Number.isNaN(at.getTime())) return null
+      return { date: parseLocalDate(String(dto.date)), at, messageId: dto.messageId ?? '' }
+    } catch {
+      return null // a broken log only means the next reminder isn't spaced from it
+    }
   }
 
   async save(entry: NudgeLogEntry): Promise<void> {

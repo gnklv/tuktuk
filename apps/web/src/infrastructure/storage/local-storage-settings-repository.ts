@@ -1,10 +1,9 @@
 import {
   THEMES,
-  isLocale,
+  restoreSettings,
   type Settings,
   type SettingsRepository,
   type Theme,
-  type TimeOfDay,
 } from '@tuktuk/core'
 import { STORAGE_KEYS, readJson, writeJson } from './json-storage'
 
@@ -15,23 +14,18 @@ export class LocalStorageSettingsRepository implements SettingsRepository {
   constructor(private readonly storage: Storage) {}
 
   async get(): Promise<Settings | null> {
-    const value = readJson(this.storage, this.key) as Partial<Settings> | null
-    if (
-      !value ||
-      typeof value.locale !== 'string' ||
-      !isLocale(value.locale) ||
-      typeof value.timeZone !== 'string' ||
-      typeof value.dayDeadline !== 'number'
-    ) {
+    const value = readJson(this.storage, this.key)
+    if (!value || typeof value !== 'object') return null
+    const stored = value as Record<string, unknown>
+    try {
+      return restoreSettings({
+        ...stored,
+        // Stored before themes existed (or an unknown one): not worth losing the rest over.
+        theme: THEMES.includes(stored.theme as Theme) ? stored.theme : 'system',
+      })
+    } catch (error) {
+      console.warn('[storage] settings are corrupted, using defaults', error)
       return null
-    }
-    return {
-      locale: value.locale,
-      timeZone: value.timeZone,
-      dayDeadline: value.dayDeadline as TimeOfDay,
-      quietHours: value.quietHours ?? null,
-      // Missing in settings saved before themes existed.
-      theme: THEMES.includes(value.theme as Theme) ? (value.theme as Theme) : 'system',
     }
   }
 

@@ -74,6 +74,29 @@ describe('LocalStorageTaskRepository', () => {
     expect(task?.activeFrom).toBe('2026-10-13')
   })
 
+  it('drops records that break domain rules, keeps the valid ones', async () => {
+    const valid = {
+      id: 'ok',
+      title: 'Valid',
+      schedule: { kind: 'once', date: today },
+      required: true,
+      createdAt: '2026-10-14T09:00:00.000Z',
+      activeFrom: today,
+    }
+    storage.setItem(
+      STORAGE_KEYS.tasks,
+      JSON.stringify([
+        valid,
+        { ...valid, id: 'bad-weekdays', schedule: { kind: 'weekly', weekdays: [0, 99] } },
+        { ...valid, id: 'bad-date', schedule: { kind: 'once', date: '2026-02-30' } },
+        { ...valid, id: 'blank', title: '   ' },
+        { ...valid, id: 'bad-created', createdAt: 'not a date' },
+      ]),
+    )
+    const tasks = await new LocalStorageTaskRepository(storage).getAll()
+    expect(tasks.map((t) => t.id)).toEqual(['ok'])
+  })
+
   it('survives corrupted storage', async () => {
     storage.setItem(STORAGE_KEYS.tasks, '{not json')
     expect(await new LocalStorageTaskRepository(storage).getAll()).toEqual([])
@@ -128,6 +151,25 @@ describe('LocalStorageSettingsRepository', () => {
     expect((await new LocalStorageSettingsRepository(storage).get())?.theme).toBe('system')
   })
 
+  it('falls back to defaults when settings break the rules', async () => {
+    for (const broken of [
+      { ...settings, quietHours: { start: 'abc' } },
+      { ...settings, dayDeadline: 1420 }, // inside quiet hours 23:30–08:00
+      { ...settings, timeZone: 'Mars/Olympus' },
+    ]) {
+      storage.setItem(STORAGE_KEYS.settings, JSON.stringify(broken))
+      expect(await new LocalStorageSettingsRepository(storage).get()).toBeNull()
+    }
+  })
+
+  it('keeps the rest when only the theme is unknown', async () => {
+    storage.setItem(STORAGE_KEYS.settings, JSON.stringify({ ...settings, theme: 'neon' }))
+    expect(await new LocalStorageSettingsRepository(storage).get()).toEqual({
+      ...settings,
+      theme: 'system',
+    })
+  })
+
   it('ignores settings with an unsupported locale', async () => {
     storage.setItem(STORAGE_KEYS.settings, JSON.stringify({ ...settings, locale: 'de' }))
     expect(await new LocalStorageSettingsRepository(storage).get()).toBeNull()
@@ -141,5 +183,19 @@ describe('LocalStorageNudgeLogRepository', () => {
     const entry = { date: today, at: new Date('2026-10-14T08:00:00Z'), messageId: 'calm:1' }
     await repo.save(entry)
     expect(await new LocalStorageNudgeLogRepository(storage).getLast()).toEqual(entry)
+  })
+})
+
+describe('LocalStorageCompletionRepository: corrupted data', () => {
+  it('drops broken completions', async () => {
+    storage.setItem(
+      STORAGE_KEYS.completions,
+      JSON.stringify([
+        { taskId: 't1', date: '2026-10-14', completedAt: '2026-10-14T12:00:00.000Z' },
+        { taskId: 't1', date: 'yesterday', completedAt: '2026-10-14T12:00:00.000Z' },
+        { taskId: '', date: '2026-10-14', completedAt: '2026-10-14T12:00:00.000Z' },
+      ]),
+    )
+    expect(await new LocalStorageCompletionRepository(storage).getByDate(today)).toHaveLength(1)
   })
 })
