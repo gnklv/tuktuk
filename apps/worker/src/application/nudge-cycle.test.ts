@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LocalDate, ReminderSnapshot } from '@tuktuk/core'
 import { makeNudgeCycle } from './nudge-cycle'
-import { InMemoryNudgeTargets, InMemorySubscriptions, RecordingPushSender } from './fakes'
+import { InMemoryNudgeTargets, InMemorySubscriptions, RecordingPushSender } from '../testing/fakes'
 import type { NudgeTarget } from './ports'
 
 // Moscow (UTC+3): deadline 23:00, quiet hours 23:30–08:00

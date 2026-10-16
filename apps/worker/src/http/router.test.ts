@@ -7,7 +7,7 @@ import {
   InMemorySnapshots,
   InMemorySubscriptions,
   fakeSecrets,
-} from '../application/fakes'
+} from '../testing/fakes'
 
 let deps: HttpDeps
 

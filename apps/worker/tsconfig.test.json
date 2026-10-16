@@ -1,8 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM"],
-    "types": []
+    // Tests run in Node, but use the same Workers runtime types as the code they test.
+    "lib": ["ES2022"],
+    "types": ["vite/client"]
   },
-  "include": ["src/**/*.test.ts"]
+  "include": ["src/**/*.test.ts", "src/testing", "worker-configuration.d.ts"]
 }

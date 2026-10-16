@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fakeClock } from '@tuktuk/core/testing'
 import { makeDeviceUseCases } from './devices'
-import { InMemoryDevices, InMemorySnapshots, InMemorySubscriptions, fakeSecrets } from './fakes'
+import {
+  InMemoryDevices,
+  InMemorySnapshots,
+  InMemorySubscriptions,
+  fakeSecrets,
+} from '../testing/fakes'
 
 const subscription = {
   endpoint: 'https://web.push.apple.com/abc',

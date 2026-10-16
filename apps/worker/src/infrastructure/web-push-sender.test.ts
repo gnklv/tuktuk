@@ -3,24 +3,28 @@ import type { LocalDate, PushPayload } from '@tuktuk/core'
 import { WebPushSender } from './web-push-sender'
 import { toBase64Url } from './base64url'
 
+// The Workers runtime types have looser overloads for these calls than the DOM ones.
+const exportRaw = async (key: CryptoKey) =>
+  (await crypto.subtle.exportKey('raw', key)) as ArrayBuffer
+
 /** Real keys, as a browser and the server would have them. */
 async function keys() {
-  const vapid = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
+  const vapid = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, [
     'sign',
-  ])
-  const browser = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
+  ])) as CryptoKeyPair
+  const browser = (await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
     'deriveBits',
-  ])
+  ])) as CryptoKeyPair
   return {
     vapid: {
       subject: 'https://gnklv.github.io/tuktuk/',
-      publicKey: toBase64Url(await crypto.subtle.exportKey('raw', vapid.publicKey)),
-      privateKey: (await crypto.subtle.exportKey('jwk', vapid.privateKey)).d!,
+      publicKey: toBase64Url(await exportRaw(vapid.publicKey)),
+      privateKey: ((await crypto.subtle.exportKey('jwk', vapid.privateKey)) as JsonWebKey).d!,
     },
     subscription: {
       endpoint: 'https://web.push.apple.com/QGuQyavXutnMH',
       keys: {
-        p256dh: toBase64Url(await crypto.subtle.exportKey('raw', browser.publicKey)),
+        p256dh: toBase64Url(await exportRaw(browser.publicKey)),
         auth: toBase64Url(crypto.getRandomValues(new Uint8Array(16))),
       },
     },

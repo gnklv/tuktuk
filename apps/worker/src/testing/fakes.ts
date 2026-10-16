@@ -10,7 +10,7 @@ import type {
   Secrets,
   SnapshotRepository,
   SubscriptionRepository,
-} from './ports'
+} from '../application/ports'
 import type { LocalDate, PushPayload, ReminderSnapshot } from '@tuktuk/core'
 
 export class InMemoryDevices implements DeviceRepository {
