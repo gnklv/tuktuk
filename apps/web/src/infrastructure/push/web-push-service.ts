@@ -58,6 +58,8 @@ export class WebPushService {
       method: 'PUT',
       body: snapshot,
       auth: this.auth(credentials),
+      // Often sent as the app goes to the background.
+      keepalive: true,
     })
   }
 

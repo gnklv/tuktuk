@@ -11,10 +11,17 @@ export class ApiError extends Error {
 
 export async function api<T = void>(
   path: string,
-  init: { method?: string; body?: unknown; auth?: string } = {},
+  init: {
+    method?: string
+    body?: unknown
+    auth?: string
+    /** Lets the request finish even if the page is hidden or closed right after it starts. */
+    keepalive?: boolean
+  } = {},
 ): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     method: init.method ?? 'GET',
+    keepalive: init.keepalive ?? false,
     headers: {
       ...(init.body !== undefined && { 'Content-Type': 'application/json' }),
       ...(init.auth && { Authorization: init.auth }),

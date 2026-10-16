@@ -70,21 +70,34 @@ export const useRemindersStore = defineStore('reminders', () => {
   function syncSnapshot() {
     if (pushStatus.value !== 'on') return
     clearTimeout(snapshotTimer)
-    snapshotTimer = setTimeout(async () => {
-      try {
-        const { settings } = settingsStore
-        const today = toLocalDate(clock.now(), settings.timeZone)
-        // Titles first: by the time the server pushes, the device must know what to say.
-        await push.saveLocalTitles(await useCases.getPendingTitles(today))
-        const snapshot = await useCases.getReminderSnapshot(settings, today)
-        const serialized = JSON.stringify(snapshot)
-        if (serialized === lastSentSnapshot) return
-        await push.syncSnapshot(snapshot)
-        lastSentSnapshot = serialized
-      } catch (error) {
-        console.warn('[push] could not sync the snapshot', error)
-      }
-    }, SNAPSHOT_DEBOUNCE_MS)
+    snapshotTimer = setTimeout(() => void sendSnapshot(), SNAPSHOT_DEBOUNCE_MS)
+  }
+
+  /**
+   * Sends a pending sync right away. Called when the app goes to the background: iOS freezes
+   * the PWA before a debounce timer fires, and the server would keep stale counts.
+   */
+  function flushSnapshot() {
+    if (snapshotTimer === undefined) return
+    void sendSnapshot()
+  }
+
+  async function sendSnapshot() {
+    clearTimeout(snapshotTimer)
+    snapshotTimer = undefined
+    try {
+      const { settings } = settingsStore
+      const today = toLocalDate(clock.now(), settings.timeZone)
+      // Titles first: by the time the server pushes, the device must know what to say.
+      await push.saveLocalTitles(await useCases.getPendingTitles(today))
+      const snapshot = await useCases.getReminderSnapshot(settings, today)
+      const serialized = JSON.stringify(snapshot)
+      if (serialized === lastSentSnapshot) return
+      await push.syncSnapshot(snapshot)
+      lastSentSnapshot = serialized
+    } catch (error) {
+      console.warn('[push] could not sync the snapshot', error)
+    }
   }
 
   /** Asks the server to send a push — checks the whole chain end to end. */
@@ -108,6 +121,7 @@ export const useRemindersStore = defineStore('reminders', () => {
     refreshPermission,
     syncPush,
     syncSnapshot,
+    flushSnapshot,
     sendTest,
     sendServerTest,
   }

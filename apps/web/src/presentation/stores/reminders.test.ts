@@ -117,4 +117,24 @@ describe('reminders store: snapshot sync', () => {
     await vi.advanceTimersByTimeAsync(1000)
     expect(sent).toHaveLength(1)
   })
+
+  it('sends a pending change immediately when the app goes to the background', async () => {
+    const store = useStore()
+    await store.syncPush()
+    await vi.advanceTimersByTimeAsync(1000)
+    const before = sent.length
+
+    await useCases.addTask({ title: 'Last minute', schedule: { kind: 'once', date: today } }, today)
+    store.syncSnapshot()
+    store.flushSnapshot() // the user locks the phone right away
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(sent).toHaveLength(before + 1)
+    expect(sent.at(-1)?.days[0]).toEqual({ date: today, total: 1, pending: 1 })
+
+    // Nothing pending → flushing again sends nothing.
+    store.flushSnapshot()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(sent).toHaveLength(before + 1)
+  })
 })

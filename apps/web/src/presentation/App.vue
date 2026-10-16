@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch, watchEffect } from 'vue'
+import { onMounted, onUnmounted, watch, watchEffect } from 'vue'
 import { RouterView } from 'vue-router'
 import { useAppI18n } from './i18n'
 import { useSettingsStore } from './stores/settings'
@@ -21,6 +21,22 @@ useClockTick(async () => {
   await todayStore.tick()
   reminders.refreshPermission()
   await reminders.check()
+  // A safety net: if a sync was lost, it goes out now (unchanged snapshots are not resent).
+  reminders.syncSnapshot()
+})
+
+// Leaving the app (switching away, locking the phone): send pending changes right now —
+// iOS freezes the app before a debounced sync would fire.
+function onHide() {
+  if (document.visibilityState === 'hidden') reminders.flushSnapshot()
+}
+onMounted(() => {
+  document.addEventListener('visibilitychange', onHide)
+  window.addEventListener('pagehide', reminders.flushSnapshot)
+})
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', onHide)
+  window.removeEventListener('pagehide', reminders.flushSnapshot)
 })
 // Tasks or settings changed → the next reminder may be due earlier, later or not at all.
 watch([() => todayStore.overview, () => settingsStore.settings], () => {
