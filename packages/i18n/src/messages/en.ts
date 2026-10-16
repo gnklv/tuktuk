@@ -54,6 +54,19 @@ export const en = {
       body: 'This is what reminders look like. The closer the deadline, the louder I knock.',
     },
   },
+  streak: {
+    days: '{n} day | {n} days',
+    label: 'Streak: {days}',
+    atRisk: 'It’s on the line — finish today’s tasks.',
+    todayDone: 'Today counts!',
+    best: 'Best: {days}',
+  },
+  summary: {
+    title: 'Yesterday',
+    done: 'Everything done! Streak: {days} 🔥',
+    missed: '{done} of {total} done. Today we start a new streak 💪',
+    ok: 'Got it',
+  },
   deadline: {
     left: '{time} to the deadline',
     overdue: 'Deadline passed',

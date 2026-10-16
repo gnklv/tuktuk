@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   completions: 'tuktuk:v1:completions',
   settings: 'tuktuk:v1:settings',
   nudgeLog: 'tuktuk:v1:nudge-log',
+  uiPrefs: 'tuktuk:v1:ui-prefs',
 } as const
 
 export function readJson(storage: Storage, key: string): unknown {

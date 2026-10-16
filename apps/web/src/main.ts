@@ -7,6 +7,7 @@ import {
   makeCheckNudge,
   makeGetReminderSnapshot,
   makeGetPendingTitles,
+  makeGetStreak,
   makeGetDayOverview,
   makeGetSettings,
   makeToggleCompletion,
@@ -20,6 +21,7 @@ import {
   InitialSettingsKey,
   NotificationsKey,
   PushKey,
+  UiPrefsKey,
   UseCasesKey,
   type AppUseCases,
 } from './presentation/di'
@@ -35,6 +37,7 @@ import { LocalStorageTaskRepository } from './infrastructure/storage/local-stora
 import { LocalStorageCompletionRepository } from './infrastructure/storage/local-storage-completion-repository'
 import { LocalStorageSettingsRepository } from './infrastructure/storage/local-storage-settings-repository'
 import { LocalStorageNudgeLogRepository } from './infrastructure/storage/local-storage-nudge-log-repository'
+import { LocalStorageUiPrefs } from './infrastructure/storage/local-storage-ui-prefs'
 
 const clock = import.meta.env.DEV ? createDevClock() : systemClock
 const env = browserEnvironment()
@@ -54,6 +57,7 @@ const useCases: AppUseCases = {
   updateSettings: (patch) => updateSettings(patch, env),
   getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
   getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
+  getStreak: makeGetStreak({ taskRepo, completionRepo }),
   checkNudge: makeCheckNudge({
     clock,
     taskRepo,
@@ -73,6 +77,7 @@ createApp(App)
   .provide(InitialSettingsKey, settings)
   .provide(NotificationsKey, notifier)
   .provide(PushKey, push)
+  .provide(UiPrefsKey, new LocalStorageUiPrefs(localStorage))
   .use(createPinia())
   .use(createAppI18n(settings.locale))
   .use(createAppRouter())

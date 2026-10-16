@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAppI18n } from '../i18n'
 import { localDateToDate } from '../i18n/dates'
@@ -11,11 +12,27 @@ import AddTaskForm from '../features/today/AddTaskForm.vue'
 import MoodMascot from '../features/today/MoodMascot.vue'
 import DeadlineCard from '../features/today/DeadlineCard.vue'
 import NotificationsBanner from '../features/reminders/NotificationsBanner.vue'
+import StreakBadge from '../features/today/StreakBadge.vue'
+import YesterdaySummary from '../features/today/YesterdaySummary.vue'
+import { useUiPrefs } from '../di'
 
 const { t, d } = useAppI18n()
 const today = useTodayStore()
 const settingsStore = useSettingsStore()
 const reminders = useRemindersStore()
+const uiPrefs = useUiPrefs()
+
+const summarySeenOn = ref(uiPrefs.summarySeenOn())
+const showSummary = computed(
+  () =>
+    today.streak !== null &&
+    today.streak.yesterday.result !== 'rest' &&
+    summarySeenOn.value !== today.date,
+)
+function dismissSummary() {
+  uiPrefs.markSummarySeen(today.date)
+  summarySeenOn.value = today.date
+}
 </script>
 
 <template>
@@ -23,6 +40,7 @@ const reminders = useRemindersStore()
     <header class="today__header">
       <div class="today__title">
         <h1>{{ t('app.name') }} 🐦</h1>
+        <StreakBadge v-if="today.streak" class="today__streak" :streak="today.streak.streak" />
         <UiIconButton :as="RouterLink" to="/settings" :label="t('settings.title')">
           <svg
             viewBox="0 0 24 24"
@@ -43,6 +61,12 @@ const reminders = useRemindersStore()
         {{ t('today.date', { date: d(localDateToDate(today.date), 'dayLong') }) }}
       </p>
     </header>
+
+    <YesterdaySummary
+      v-if="showSummary && today.streak"
+      :overview="today.streak"
+      @dismiss="dismissSummary"
+    />
 
     <template v-if="today.overview">
       <MoodMascot :pressure="today.pressure" :total="today.total" :all-done="today.allDone" />
@@ -100,6 +124,10 @@ const reminders = useRemindersStore()
   bottom: 0;
   padding: var(--space-3) 0 max(var(--space-4), env(safe-area-inset-bottom));
   background: linear-gradient(transparent, var(--color-bg) var(--space-3));
+}
+
+.today__streak {
+  margin-left: auto;
 }
 
 .today__title {

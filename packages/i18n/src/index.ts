@@ -4,6 +4,7 @@ import type { Locale } from '@tuktuk/core'
 
 export { messages, type MessageSchema } from './messages'
 export { nudgeCopy, formatDuration } from './nudge-copy'
+export { russianPlural } from './plural'
 
 /** Each language's own name, shown in the language picker. */
 export const LOCALE_NAMES: Record<Locale, string> = {

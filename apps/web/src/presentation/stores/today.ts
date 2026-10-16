@@ -6,6 +6,7 @@ import {
   type DayOverview,
   type LocalDate,
   type NewTaskInput,
+  type StreakOverview,
   type TaskId,
 } from '@tuktuk/core'
 import { useClock, useUseCases } from '../di'
@@ -24,6 +25,7 @@ export const useTodayStore = defineStore('today', () => {
   /** The day currently shown. Changes only via `load()`, so it never drifts from `overview`. */
   const date = shallowRef<LocalDate>(today())
   const overview = shallowRef<DayOverview | null>(null)
+  const streak = shallowRef<StreakOverview | null>(null)
 
   const total = computed(() => overview.value?.items.length ?? 0)
   const done = computed(() => overview.value?.doneCount ?? 0)
@@ -41,9 +43,13 @@ export const useTodayStore = defineStore('today', () => {
   async function load() {
     now.value = clock.now()
     const day = today()
-    const result = await useCases.getDayOverview(day)
+    const [result, streakResult] = await Promise.all([
+      useCases.getDayOverview(day),
+      useCases.getStreak(day),
+    ])
     date.value = day
     overview.value = result
+    streak.value = streakResult
   }
 
   /** Reloads only if the calendar day has changed since the last load. */
@@ -78,6 +84,7 @@ export const useTodayStore = defineStore('today', () => {
   return {
     date,
     overview,
+    streak,
     total,
     done,
     allDone,

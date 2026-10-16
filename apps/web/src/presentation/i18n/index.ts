@@ -1,6 +1,6 @@
 import { createI18n, useI18n } from 'vue-i18n'
 import { DEFAULT_LOCALE, type Locale } from '@tuktuk/core'
-import { messages, type MessageSchema } from '@tuktuk/i18n'
+import { messages, russianPlural, type MessageSchema } from '@tuktuk/i18n'
 
 const dateFormats = {
   dayLong: { weekday: 'long', day: 'numeric', month: 'long' },
@@ -26,6 +26,7 @@ export function createAppI18n(locale: Locale) {
     fallbackLocale: DEFAULT_LOCALE,
     messages,
     datetimeFormats: { en: dateFormats, ru: dateFormats },
+    pluralRules: { ru: russianPlural },
   })
 }
 
@@ -38,6 +39,9 @@ export function useAppI18n() {
   return {
     locale: i18n.locale,
     t: (key: MessageKey, named: Record<string, unknown> = {}) => i18n.t(key, named),
+    /** Plural message (`'{n} день | {n} дня | {n} дней'`), `{n}` is the count. */
+    tn: (key: MessageKey, count: number, named: Record<string, unknown> = {}) =>
+      i18n.t(key, { n: count, ...named }, count),
     d: (value: Date | number, format: DateFormat) => i18n.d(value, format),
   }
 }

@@ -9,6 +9,7 @@ import {
   makeGetDayOverview,
   makeGetReminderSnapshot,
   makeGetPendingTitles,
+  makeGetStreak,
   makeToggleCompletion,
   makeUpdateSettings,
   type LocalDate,
@@ -58,6 +59,7 @@ beforeEach(() => {
     updateSettings: (patch) => makeUpdateSettings({ settingsRepo })(patch, env),
     getReminderSnapshot: makeGetReminderSnapshot({ taskRepo, completionRepo }),
     getPendingTitles: makeGetPendingTitles({ taskRepo, completionRepo }),
+    getStreak: makeGetStreak({ taskRepo, completionRepo }),
     checkNudge: makeCheckNudge({
       clock,
       taskRepo,

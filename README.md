@@ -73,11 +73,11 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 - [x] **1. Today's tasks** — data model (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage, habits by weekday, task removal, day rollover
 - [x] **2. Day deadline & pressure** — settings screen, pressure model (`computePressure`, `nextNudgeAt`), pressure-driven UI, deadline card, emoji mascot
 - [x] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
-- 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
-- [ ] **4. Streak** — a day counts when all required tasks are done, day summary
+- 🏁 **Personal MVP** ✅ — dogfood with a pinned tab: does escalating pressure actually work?
+- [x] **4. Streak** — a day counts when all required tasks are done, rest days are neutral, best streak, yesterday summary
 - [x] **5. PWA** — manifest, icons, offline via Service Worker, notifications through the Service Worker, iOS "Add to Home Screen" onboarding, safe areas
 - [ ] **6. Push server** — Cloudflare Worker + D1 ✅, device registration and push subscription ✅, snapshot sync ✅, cron reminders ✅, "Done" action
-- 🏁 **MVP** — reminders reach the phone while the app is closed, streak keeps you coming back
+- 🏁 **MVP** ✅ — reminders reach the phone while the app is closed, streak keeps you coming back
 - [ ] **7. XP & levels** — XP with early-finish multiplier, levels
 - [ ] **8. Telegram bot** — second reminder channel: account linking, inline "Done" / "Later" buttons
 - [ ] **9. Mascot** — geometric woodpecker in Figma (7 moods), later Rive animation

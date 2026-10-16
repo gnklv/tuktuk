@@ -10,6 +10,7 @@ import type {
   makeCheckNudge,
   makeGetReminderSnapshot,
   makeGetPendingTitles,
+  makeGetStreak,
   makeArchiveTask,
   makeGetDayOverview,
   makeToggleCompletion,
@@ -25,6 +26,7 @@ export interface AppUseCases {
   checkNudge: ReturnType<typeof makeCheckNudge>
   getReminderSnapshot: ReturnType<typeof makeGetReminderSnapshot>
   getPendingTitles: ReturnType<typeof makeGetPendingTitles>
+  getStreak: ReturnType<typeof makeGetStreak>
 }
 
 export type NotificationPermissionState =
@@ -42,10 +44,11 @@ export interface NotificationAccess {
   show(message: NudgeMessage): Promise<void>
 }
 
-export const ClockKey: InjectionKey<Clock> = Symbol('Clock')
-export const UseCasesKey: InjectionKey<AppUseCases> = Symbol('UseCases')
+// Symbol.for: the same key survives hot module reloads of this file in dev.
+export const ClockKey: InjectionKey<Clock> = Symbol.for('tuktuk:Clock')
+export const UseCasesKey: InjectionKey<AppUseCases> = Symbol.for('tuktuk:UseCases')
 /** Settings loaded before mount, so the UI never sees "no settings yet". */
-export const InitialSettingsKey: InjectionKey<Settings> = Symbol('InitialSettings')
+export const InitialSettingsKey: InjectionKey<Settings> = Symbol.for('tuktuk:InitialSettings')
 export type PushStatus = 'unsupported' | 'off' | 'on'
 
 /** Web Push via the server: reminders even when the app is closed. */
@@ -60,8 +63,17 @@ export interface PushAccess {
   saveLocalTitles(titles: PendingTitles): Promise<void>
 }
 
-export const PushKey: InjectionKey<PushAccess> = Symbol('Push')
-export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol('Notifications')
+export const PushKey: InjectionKey<PushAccess> = Symbol.for('tuktuk:Push')
+
+/** Small per-device UI memory that isn't part of the domain. */
+export interface UiPrefs {
+  /** The day whose "yesterday" summary was last dismissed. */
+  summarySeenOn(): string | null
+  markSummarySeen(date: string): void
+}
+
+export const UiPrefsKey: InjectionKey<UiPrefs> = Symbol.for('tuktuk:UiPrefs')
+export const NotificationsKey: InjectionKey<NotificationAccess> = Symbol.for('tuktuk:Notifications')
 
 function injectStrict<T>(key: InjectionKey<T>): T {
   const value = inject(key)
@@ -76,3 +88,4 @@ export const useUseCases = (): AppUseCases => injectStrict(UseCasesKey)
 export const useInitialSettings = (): Settings => injectStrict(InitialSettingsKey)
 export const useNotifications = (): NotificationAccess => injectStrict(NotificationsKey)
 export const usePush = (): PushAccess => injectStrict(PushKey)
+export const useUiPrefs = (): UiPrefs => injectStrict(UiPrefsKey)
