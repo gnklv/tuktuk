@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAppI18n } from '../i18n'
 import { localDateToDate } from '../i18n/dates'
@@ -14,25 +13,13 @@ import DeadlineCard from '../features/today/DeadlineCard.vue'
 import NotificationsBanner from '../features/reminders/NotificationsBanner.vue'
 import StreakBadge from '../features/today/StreakBadge.vue'
 import YesterdaySummary from '../features/today/YesterdaySummary.vue'
-import { useUiPrefs } from '../di'
+import { useYesterdaySummary } from '../features/today/use-yesterday-summary'
 
 const { t, d } = useAppI18n()
 const today = useTodayStore()
 const settingsStore = useSettingsStore()
 const reminders = useRemindersStore()
-const uiPrefs = useUiPrefs()
-
-const summarySeenOn = ref(uiPrefs.summarySeenOn())
-const showSummary = computed(
-  () =>
-    today.streak !== null &&
-    today.streak.yesterday.result !== 'rest' &&
-    summarySeenOn.value !== today.shownDate,
-)
-function dismissSummary() {
-  uiPrefs.markSummarySeen(today.shownDate)
-  summarySeenOn.value = today.shownDate
-}
+const { visible: showSummary, dismiss: dismissSummary } = useYesterdaySummary()
 </script>
 
 <template>
