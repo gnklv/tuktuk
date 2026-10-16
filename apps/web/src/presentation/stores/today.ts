@@ -20,10 +20,11 @@ export const useTodayStore = defineStore('today', () => {
 
   /** Reactive "now", refreshed by `tick()`. */
   const now = shallowRef(clock.now())
-  const today = (): LocalDate => toLocalDate(clock.now(), settingsStore.settings.timeZone)
+  /** The calendar date right now, in the user's timezone. */
+  const currentDate = (): LocalDate => toLocalDate(clock.now(), settingsStore.settings.timeZone)
 
-  /** The day currently shown. Changes only via `load()`, so it never drifts from `overview`. */
-  const date = shallowRef<LocalDate>(today())
+  /** The day on screen. Changes only via `load()`, so it never drifts from `overview`. */
+  const shownDate = shallowRef<LocalDate>(currentDate())
   const overview = shallowRef<DayOverview | null>(null)
   const streak = shallowRef<StreakOverview | null>(null)
 
@@ -42,19 +43,19 @@ export const useTodayStore = defineStore('today', () => {
 
   async function load() {
     now.value = clock.now()
-    const day = today()
+    const day = currentDate()
     const [result, streakResult] = await Promise.all([
       useCases.getDayOverview(day),
       useCases.getStreak(day),
     ])
-    date.value = day
+    shownDate.value = day
     overview.value = result
     streak.value = streakResult
   }
 
   /** Reloads only if the calendar day has changed since the last load. */
   async function syncDay() {
-    if (today() !== date.value) await load()
+    if (currentDate() !== shownDate.value) await load()
   }
 
   /** Called every minute and when the tab wakes up. */
@@ -64,32 +65,32 @@ export const useTodayStore = defineStore('today', () => {
   }
 
   async function addTask(input: NewTaskInput) {
-    await useCases.addTask(input, today())
+    await useCases.addTask(input, currentDate())
     await load()
   }
 
   async function archive(taskId: TaskId) {
-    await useCases.archiveTask(taskId, today())
+    await useCases.archiveTask(taskId, currentDate())
     await load()
   }
 
   async function toggle(taskId: TaskId) {
     // The list is from a day that is already over: show the new day instead of
     // silently ticking off yesterday's task.
-    if (today() !== date.value) return load()
-    await useCases.toggleCompletion(taskId, date.value)
+    if (currentDate() !== shownDate.value) return load()
+    await useCases.toggleCompletion(taskId, shownDate.value)
     await load()
   }
 
   return {
-    date,
+    shownDate,
     overview,
     streak,
     total,
     done,
     allDone,
     pressure,
-    today,
+    currentDate,
     load,
     syncDay,
     tick,

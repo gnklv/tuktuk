@@ -1,4 +1,4 @@
-import type { NudgeMessage } from '../../domain/nudge-messages'
+import type { NudgeMessage } from '../../domain/nudge'
 
 /** Delivers a reminder to the user: a system notification, a push, a Telegram message… */
 export interface Notifier {

@@ -29,8 +29,8 @@ export type { Settings, Theme } from './domain/settings'
 export { PRESSURE_LEVELS, computePressure, nextNudgeAt } from './domain/pressure'
 export type { PressureLevel, DayPressure } from './domain/pressure'
 
-export { composeNudge, nudgeMood } from './domain/nudge-messages'
-export type { NudgeCopy, NudgeMessage, NudgeMood } from './domain/nudge-messages'
+export { composeNudge, nudgeMood } from './domain/nudge'
+export type { NudgeCopy, NudgeMessage, NudgeMood } from './domain/nudge'
 
 export type { Streak } from './domain/streak'
 

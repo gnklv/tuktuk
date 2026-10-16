@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { composeNudge, nudgeMood } from './nudge-messages'
+import { composeNudge, nudgeMood } from './nudge'
 import type { DayPressure } from './pressure'
 import { fakeNudgeCopy } from '../testing'
 

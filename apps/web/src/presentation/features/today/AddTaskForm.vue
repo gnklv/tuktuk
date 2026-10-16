@@ -28,7 +28,7 @@ const weekdayOptions = computed(() =>
 
 const schedule = (): TaskSchedule =>
   kind.value === 'once'
-    ? { kind: 'once', date: today.today() }
+    ? { kind: 'once', date: today.currentDate() }
     : { kind: 'weekly', weekdays: weekdays.value }
 
 async function submit() {

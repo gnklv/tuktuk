@@ -72,20 +72,23 @@ describe('today store: day rollover', () => {
   it('switches to the new day after local midnight', async () => {
     const store = useStore()
     await store.load()
-    await store.addTask({ title: 'Call mom', schedule: { kind: 'once', date: store.today() } })
+    await store.addTask({
+      title: 'Call mom',
+      schedule: { kind: 'once', date: store.currentDate() },
+    })
     await store.addTask({ title: 'Stretch', schedule: { kind: 'weekly', weekdays: [3, 4] } })
-    expect(store.date).toBe('2026-10-14')
+    expect(store.shownDate).toBe('2026-10-14')
     expect(store.total).toBe(2)
 
     // Still Wednesday in Moscow: nothing changes.
     clock.set('2026-10-14T20:59:00Z')
     await store.syncDay()
-    expect(store.date).toBe('2026-10-14')
+    expect(store.shownDate).toBe('2026-10-14')
 
     // 00:30 Thursday in Moscow, although still Wednesday in UTC.
     clock.set('2026-10-14T21:30:00Z')
     await store.syncDay()
-    expect(store.date).toBe('2026-10-15')
+    expect(store.shownDate).toBe('2026-10-15')
     // Yesterday's one-off is gone, the Thursday habit is there and not done.
     expect(store.overview?.items.map((i) => i.task.title)).toEqual(['Stretch'])
     expect(store.done).toBe(0)
@@ -99,7 +102,7 @@ describe('today store: day rollover', () => {
     clock.set('2026-10-14T21:30:00Z') // past midnight, list not refreshed yet
     await store.toggle(taskId)
 
-    expect(store.date).toBe('2026-10-15')
+    expect(store.shownDate).toBe('2026-10-15')
     expect(store.done).toBe(0)
   })
 })
@@ -108,7 +111,10 @@ describe('today store: pressure', () => {
   it('grows as time passes and drops to zero when everything is done', async () => {
     const store = useStore()
     // 22:00 in Moscow, deadline 23:00, active day 08:00–23:00
-    await store.addTask({ title: 'Call mom', schedule: { kind: 'once', date: store.today() } })
+    await store.addTask({
+      title: 'Call mom',
+      schedule: { kind: 'once', date: store.currentDate() },
+    })
     const evening = store.pressure.value
     expect(store.pressure.level).toBe('panic')
 

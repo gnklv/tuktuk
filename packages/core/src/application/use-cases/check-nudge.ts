@@ -1,6 +1,6 @@
 import { pendingTitles as pendingTitlesOf } from '../../domain/day-overview'
 import { toLocalDate } from '../../domain/local-date'
-import { composeNudge, type NudgeCopy } from '../../domain/nudge-messages'
+import { composeNudge, type NudgeCopy } from '../../domain/nudge'
 import { computePressure, nextNudgeAt } from '../../domain/pressure'
 import type { Settings } from '../../domain/settings'
 import { makeLoadHistory } from '../history'

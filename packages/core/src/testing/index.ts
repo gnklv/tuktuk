@@ -4,7 +4,7 @@ import type { CompletionRepository } from '../application/ports/completion-repos
 import type { IdGenerator } from '../application/ports/id-generator'
 import type { Notifier } from '../application/ports/notifier'
 import type { NudgeLogEntry, NudgeLogRepository } from '../application/ports/nudge-log-repository'
-import type { NudgeCopy, NudgeMessage, NudgeMood } from '../domain/nudge-messages'
+import type { NudgeCopy, NudgeMessage, NudgeMood } from '../domain/nudge'
 import type { SettingsRepository } from '../application/ports/settings-repository'
 import type { TaskRepository } from '../application/ports/task-repository'
 import type { Completion } from '../domain/completion'

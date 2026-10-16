@@ -27,11 +27,11 @@ const showSummary = computed(
   () =>
     today.streak !== null &&
     today.streak.yesterday.result !== 'rest' &&
-    summarySeenOn.value !== today.date,
+    summarySeenOn.value !== today.shownDate,
 )
 function dismissSummary() {
-  uiPrefs.markSummarySeen(today.date)
-  summarySeenOn.value = today.date
+  uiPrefs.markSummarySeen(today.shownDate)
+  summarySeenOn.value = today.shownDate
 }
 </script>
 
@@ -58,7 +58,7 @@ function dismissSummary() {
         </UiIconButton>
       </div>
       <p class="muted">
-        {{ t('today.date', { date: d(localDateToDate(today.date), 'dayLong') }) }}
+        {{ t('today.date', { date: d(localDateToDate(today.shownDate), 'dayLong') }) }}
       </p>
     </header>
 
