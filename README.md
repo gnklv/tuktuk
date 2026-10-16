@@ -4,7 +4,7 @@ A reminder app for tasks that have no fixed time — things you plan to do "some
 
 Tuk-Tuk gives every day a deadline (e.g. 23:00) and nags you about unfinished tasks — gently in the morning, relentlessly towards the evening. A woodpecker mascot, XP, levels and streaks (inspired by Duolingo) make finishing early more rewarding than finishing at 23:55.
 
-> **Status:** early development. See the [roadmap](#roadmap). Live: https://gnklv.github.io/tuktuk/
+> **Status:** early development. See the [roadmap](#roadmap). Live: https://gnklv.github.io/tuktuk/ · API: https://tuktuk.tuktuk-worker.workers.dev/health
 
 ## Core idea
 

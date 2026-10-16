@@ -14,5 +14,9 @@
   "dependencies": {
     "@tuktuk/core": "*",
     "@tuktuk/i18n": "*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "wrangler": "^4.151.1"
   }
 }
