@@ -83,11 +83,14 @@
     oklch(94% 0.05 var(--accent-hue)),
     oklch(32% 0.06 var(--accent-hue))
   );
-  --color-on-accent: oklch(100% 0 0);
+  /* Dark text: white on these bright accents is only 2.2–3.7:1 (WCAG AA needs 4.5),
+     dark text stays at 4.7–7.8:1 across the whole pressure scale. */
+  --color-on-accent: oklch(22% 0.02 260);
 
   /* Fixed meanings — do not follow pressure. */
   --color-success: oklch(70% 0.2 145);
   --color-success-strong: oklch(56% 0.18 145);
+  --color-on-success: oklch(22% 0.02 260);
   --color-danger: oklch(63% 0.22 25);
   --color-danger-strong: oklch(50% 0.2 25);
   --color-streak: oklch(75% 0.18 60);

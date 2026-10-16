@@ -66,7 +66,7 @@ Lives in `apps/web/src/presentation/ui/` — generic `Ui*` components that know 
 
 - [x] **0. Scaffold** — monorepo, Vue app in `apps/web`, lint rule for layer boundaries, deploy to GitHub Pages
 - [x] **1. Today's tasks** — data model (tasks with schedules + completions; a day's list is computed, not stored), "Today" screen with localStorage, habits by weekday, task removal, day rollover
-- [ ] **2. Day deadline & pressure** — settings screen ✅, pressure model ✅ (`computePressure`, `nextNudgeAt`), pressure-driven UI + emoji mascot
+- [x] **2. Day deadline & pressure** — settings screen, pressure model (`computePressure`, `nextNudgeAt`), pressure-driven UI, deadline card, emoji mascot
 - [ ] **3. In-tab reminders** — notification permission, in-tab scheduler, message pool per escalation level
 - 🏁 **Personal MVP** — dogfood with a pinned tab: does escalating pressure actually work?
 - [ ] **4. Streak** — a day counts when all required tasks are done, day summary

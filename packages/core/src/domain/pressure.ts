@@ -39,6 +39,8 @@ export interface DayPressure {
   /** 0…1 */
   readonly value: number
   readonly level: PressureLevel
+  /** Share of the active day (day start → deadline) already elapsed, 0…1. */
+  readonly elapsed: number
   /** Minutes until the deadline; 0 once it has passed. */
   readonly minutesLeft: number
   readonly overdue: boolean
@@ -53,14 +55,18 @@ export function computePressure({ now, settings, pending, total }: PressureInput
   const deadline = settings.dayDeadline
   // A deadline before the day start (only possible without quiet hours) counts from midnight.
   const start = dayStart(settings) < deadline ? dayStart(settings) : 0
-  const minutesLeft = Math.max(0, deadline - time)
-  const overdue = time >= deadline
-
-  if (pending <= 0 || total <= 0) return pressure(0, minutesLeft, overdue)
-
   const t = clamp01((time - start) / (deadline - start))
+  const rest = {
+    elapsed: round3(t),
+    minutesLeft: Math.max(0, deadline - time),
+    overdue: time >= deadline,
+  }
+
+  if (pending <= 0 || total <= 0) return { value: 0, level: 'calm', ...rest }
+
   const workload = MIN_WORKLOAD + (1 - MIN_WORKLOAD) * clamp01(pending / total)
-  return pressure(t * t * workload, minutesLeft, overdue)
+  const value = round3(t * t * workload)
+  return { value, level: pressureLevel(value), ...rest }
 }
 
 export function pressureLevel(value: number): PressureLevel {
@@ -105,11 +111,7 @@ export function nextNudgeAt(input: NextNudgeInput): Date | null {
   return due
 }
 
-function pressure(value: number, minutesLeft: number, overdue: boolean): DayPressure {
-  const rounded = Math.round(value * 1000) / 1000
-  return { value: rounded, level: pressureLevel(rounded), minutesLeft, overdue }
-}
-
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x))
+const round3 = (x: number) => Math.round(x * 1000) / 1000
 
 const addMinutes = (date: Date, minutes: number) => new Date(date.getTime() + minutes * 60_000)

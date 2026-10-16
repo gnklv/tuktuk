@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 import {
+  computePressure,
   toLocalDate,
   type DayOverview,
   type LocalDate,
@@ -16,6 +17,8 @@ export const useTodayStore = defineStore('today', () => {
   const clock = useClock()
   const settingsStore = useSettingsStore()
 
+  /** Reactive "now", refreshed by `tick()`. */
+  const now = shallowRef(clock.now())
   const today = (): LocalDate => toLocalDate(clock.now(), settingsStore.settings.timeZone)
 
   /** The day currently shown. Changes only via `load()`, so it never drifts from `overview`. */
@@ -26,7 +29,17 @@ export const useTodayStore = defineStore('today', () => {
   const done = computed(() => overview.value?.doneCount ?? 0)
   const allDone = computed(() => total.value > 0 && done.value === total.value)
 
+  const pressure = computed(() =>
+    computePressure({
+      now: now.value,
+      settings: settingsStore.settings,
+      pending: total.value - done.value,
+      total: total.value,
+    }),
+  )
+
   async function load() {
+    now.value = clock.now()
     const day = today()
     const result = await useCases.getDayOverview(day)
     date.value = day
@@ -36,6 +49,12 @@ export const useTodayStore = defineStore('today', () => {
   /** Reloads only if the calendar day has changed since the last load. */
   async function syncDay() {
     if (today() !== date.value) await load()
+  }
+
+  /** Called every minute and when the tab wakes up. */
+  async function tick() {
+    now.value = clock.now()
+    await syncDay()
   }
 
   async function addTask(input: NewTaskInput) {
@@ -56,5 +75,19 @@ export const useTodayStore = defineStore('today', () => {
     await load()
   }
 
-  return { date, overview, total, done, allDone, today, load, syncDay, addTask, archive, toggle }
+  return {
+    date,
+    overview,
+    total,
+    done,
+    allDone,
+    pressure,
+    today,
+    load,
+    syncDay,
+    tick,
+    addTask,
+    archive,
+    toggle,
+  }
 })

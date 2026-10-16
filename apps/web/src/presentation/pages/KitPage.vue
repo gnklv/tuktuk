@@ -6,6 +6,7 @@ import {
   UiCheckbox,
   UiChipGroup,
   UiIconButton,
+  UiProgress,
   UiSegmentedControl,
   UiTextField,
   UiTimeField,
@@ -16,7 +17,8 @@ type Theme = 'system' | 'light' | 'dark'
 const root = document.documentElement
 // Restore the user's theme when leaving the kit.
 const initialTheme = root.dataset.theme
-const pressure = ref(0)
+const initialPressure = root.style.getPropertyValue('--pressure')
+const pressure = ref(Number(initialPressure) || 0)
 const theme = ref<Theme>((initialTheme as Theme | undefined) ?? 'system')
 
 watchEffect(() => {
@@ -26,7 +28,7 @@ watchEffect(() => {
 })
 
 onUnmounted(() => {
-  root.style.removeProperty('--pressure')
+  root.style.setProperty('--pressure', initialPressure)
   if (initialTheme) root.dataset.theme = initialTheme
   else delete root.dataset.theme
 })
@@ -133,6 +135,11 @@ const time = ref('23:00')
           </svg>
         </UiIconButton>
       </div>
+    </section>
+
+    <section>
+      <h2>Progress</h2>
+      <UiProgress :value="pressure" label="Progress" />
     </section>
 
     <section>

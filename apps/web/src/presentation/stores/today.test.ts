@@ -81,3 +81,21 @@ describe('today store: day rollover', () => {
     expect(store.done).toBe(0)
   })
 })
+
+describe('today store: pressure', () => {
+  it('grows as time passes and drops to zero when everything is done', async () => {
+    const store = useStore()
+    // 22:00 in Moscow, deadline 23:00, active day 08:00–23:00
+    await store.addTask({ title: 'Call mom', schedule: { kind: 'once', date: store.today() } })
+    const evening = store.pressure.value
+    expect(store.pressure.level).toBe('panic')
+
+    clock.set('2026-10-14T19:50:00Z') // 22:50
+    await store.tick()
+    expect(store.pressure.value).toBeGreaterThan(evening)
+    expect(store.pressure.minutesLeft).toBe(10)
+
+    await store.toggle(store.overview!.items[0]!.task.id)
+    expect(store.pressure.value).toBe(0)
+  })
+})

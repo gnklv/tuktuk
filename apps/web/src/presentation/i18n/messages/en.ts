@@ -5,8 +5,27 @@ export const en = {
   today: {
     date: 'Today is {date}',
     progress: '{done} of {total} done',
-    empty: 'Nothing planned yet. What needs doing today?',
-    allDone: 'All done for today! 🎉',
+  },
+  mascot: {
+    empty: 'Nothing planned yet. Add something — I’ll keep an eye on it.',
+    allDone: 'All done for today! Go and rest, you’ve earned it.',
+    calm: 'A fine day to get everything done.',
+    nudging: 'Knock-knock. Maybe start with something small?',
+    insistent: 'Tasks won’t do themselves, you know.',
+    annoyed: 'I’m starting to get nervous. Seriously.',
+    panic: 'THE DEADLINE IS COMING! DO IT NOW!',
+    overdue: 'The deadline has passed… Finish it anyway, it still counts.',
+  },
+  deadline: {
+    left: '{time} to the deadline',
+    overdue: 'Deadline passed',
+    at: 'due {time}',
+    progressLabel: 'Day progress towards the deadline',
+  },
+  duration: {
+    minutes: '{m} min',
+    hours: '{h} h',
+    hoursMinutes: '{h} h {m} min',
   },
   addTask: {
     label: 'New task',

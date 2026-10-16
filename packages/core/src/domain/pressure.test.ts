@@ -48,9 +48,11 @@ describe('computePressure', () => {
 
   it('reports time left and overdue state', () => {
     expect(pressureAt('19:40')).toMatchObject({ minutesLeft: 200, overdue: false })
+    expect(pressureAt('15:30').elapsed).toBe(0.5)
     expect(pressureAt('23:10')).toEqual({
       value: 1,
       level: 'panic',
+      elapsed: 1,
       minutesLeft: 0,
       overdue: true,
     })
