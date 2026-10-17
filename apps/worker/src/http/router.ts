@@ -10,6 +10,8 @@ export interface HttpDeps {
   /** Throws if the database is unreachable. */
   pingDatabase(): Promise<void>
   devices: DeviceUseCases
+  /** Whether this client may register another device right now (per-IP rate limit). */
+  allowRegistration(clientKey: string): Promise<boolean>
 }
 
 const STATUS: Record<DeviceErrorCode, number> = {
@@ -42,6 +44,8 @@ async function route(request: Request, deps: HttpDeps): Promise<Response> {
     return json({ publicKey: deps.vapidPublicKey })
   }
   if (method === 'POST' && path === '/devices') {
+    const client = request.headers.get('CF-Connecting-IP') ?? 'unknown'
+    if (!(await deps.allowRegistration(client))) return json({ error: 'too_many_requests' }, 429)
     return json(await deps.devices.register(), 201)
   }
 

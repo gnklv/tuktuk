@@ -37,10 +37,14 @@ export function makeSyncReminders(deps: {
  * Makes sure push is on whenever notifications are allowed. Called on start too:
  * browsers may drop subscriptions, and this quietly restores them.
  */
+/**
+ * With notifications allowed, (re)sends the subscription every time, even when push looks on:
+ * the push service may have rotated it, and the server drops a subscription that is gone.
+ */
 export function makeSyncPush(deps: { push: PushAccess }) {
   return async (permission: NotificationPermissionState): Promise<PushStatus> => {
     const status = await deps.push.status()
-    if (permission !== 'granted' || status !== 'off') return status
+    if (permission !== 'granted' || status === 'unsupported') return status
     await deps.push.enable()
     return 'on'
   }

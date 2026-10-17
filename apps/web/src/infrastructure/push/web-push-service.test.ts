@@ -157,6 +157,26 @@ describe('WebPushService', () => {
     })
   })
 
+  it('syncSnapshot: registers again when the server forgot the device', async () => {
+    const snapshot = { settings: {}, days: [] } as unknown as ReminderSnapshot
+    const push = service(fakeRegistration())
+    await push.enable()
+    server.forgetAllDevices()
+
+    await push.syncSnapshot(snapshot)
+
+    expect(credentials.get()?.deviceId).toBe('d2')
+    expect(server.requests.at(-2)).toMatchObject({
+      path: '/devices/me/push-subscription',
+      auth: 'Bearer d2.t',
+    })
+    expect(server.requests.at(-1)).toMatchObject({
+      path: '/devices/me/snapshot',
+      auth: 'Bearer d2.t',
+      body: snapshot,
+    })
+  })
+
   it('surfaces other server errors', async () => {
     const failing = new PushServerClient(
       'https://api.example',

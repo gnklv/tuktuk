@@ -16,6 +16,7 @@ beforeEach(() => {
     allowedOrigins: 'https://gnklv.github.io,http://localhost:5180',
     vapidPublicKey: 'public-key',
     pingDatabase: async () => {},
+    allowRegistration: async () => true,
     devices: makeDeviceUseCases({
       devices: new InMemoryDevices(),
       subscriptions: new InMemorySubscriptions(),
@@ -120,6 +121,28 @@ describe('router', () => {
       400,
     )
     expect((await call('PUT', '/devices/me/snapshot', { body: snapshot })).status).toBe(401)
+  })
+
+  it('rate-limits device registration per client IP', async () => {
+    const seen: string[] = []
+    deps.allowRegistration = async (client) => {
+      seen.push(client)
+      return seen.length <= 2
+    }
+    const post = () =>
+      handleRequest(
+        new Request('https://tuktuk.example/devices', {
+          method: 'POST',
+          headers: { 'CF-Connecting-IP': '203.0.113.7' },
+        }),
+        deps,
+      )
+    expect((await post()).status).toBe(201)
+    expect((await post()).status).toBe(201)
+    const limited = await post()
+    expect(limited.status).toBe(429)
+    expect(await limited.json()).toEqual({ error: 'too_many_requests' })
+    expect(seen).toEqual(['203.0.113.7', '203.0.113.7', '203.0.113.7'])
   })
 
   it('returns 404 for unknown routes', async () => {

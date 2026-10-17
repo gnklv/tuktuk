@@ -29,6 +29,17 @@ export class D1DeviceRepository implements DeviceRepository {
       ? { id: row.id, tokenHash: row.token_hash, createdAt: new Date(row.created_at) }
       : null
   }
+
+  async deleteAbandoned(createdBefore: Date): Promise<number> {
+    const result = await this.db
+      .prepare(
+        `DELETE FROM devices
+         WHERE created_at < ? AND id NOT IN (SELECT device_id FROM push_subscriptions)`,
+      )
+      .bind(createdBefore.toISOString())
+      .run()
+    return result.meta.changes
+  }
 }
 
 export class D1SubscriptionRepository implements SubscriptionRepository {

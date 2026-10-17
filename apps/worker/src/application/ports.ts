@@ -10,6 +10,8 @@ export interface Device {
 export interface DeviceRepository {
   create(device: Device): Promise<void>
   findById(id: string): Promise<Device | null>
+  /** Deletes devices created before `createdBefore` that have no push subscription; returns how many. */
+  deleteAbandoned(createdBefore: Date): Promise<number>
 }
 
 /** Subscription from `PushManager.subscribe()`, as the browser serializes it. */

@@ -55,6 +55,19 @@ describe('D1DeviceRepository', () => {
     expect(await devices.findById('nope')).toBeNull()
   })
 
+  it('deletes old devices without a subscription, keeps the rest', async () => {
+    const old = at('2026-10-01T00:00:00Z')
+    await devices.create({ id: 'old-abandoned', tokenHash: 'h', createdAt: old })
+    await devices.create({ id: 'old-subscribed', tokenHash: 'h', createdAt: old })
+    await subscriptions.save('old-subscribed', subscription, old)
+    await devices.create({ id: 'fresh', tokenHash: 'h', createdAt: at('2026-10-16T00:00:00Z') })
+
+    expect(await devices.deleteAbandoned(at('2026-10-10T00:00:00Z'))).toBe(1)
+    expect(await devices.findById('old-abandoned')).toBeNull()
+    expect(await devices.findById('old-subscribed')).not.toBeNull()
+    expect(await devices.findById('fresh')).not.toBeNull()
+  })
+
   it('rejects a duplicate id', async () => {
     await device('d1')
     await expect(device('d1')).rejects.toThrow()

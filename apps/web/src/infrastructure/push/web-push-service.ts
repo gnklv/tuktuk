@@ -54,7 +54,17 @@ export class WebPushService implements PushAccess {
   /** Settings and counts for the server's schedule. No-op until the device is registered. */
   async syncSnapshot(snapshot: ReminderSnapshot): Promise<void> {
     const credentials = this.deps.credentials.get()
-    if (credentials) await this.deps.server.saveSnapshot(credentials, snapshot)
+    if (!credentials) return
+    try {
+      await this.deps.server.saveSnapshot(credentials, snapshot)
+    } catch (error) {
+      // The server forgot this device (e.g. cleaned it up): register again, then resend.
+      if (!(error instanceof ApiError && error.status === 401)) throw error
+      this.deps.credentials.clear()
+      await this.enable()
+      const fresh = this.deps.credentials.get()
+      if (fresh) await this.deps.server.saveSnapshot(fresh, snapshot)
+    }
   }
 
   private async subscribe(registration: PushRegistration) {

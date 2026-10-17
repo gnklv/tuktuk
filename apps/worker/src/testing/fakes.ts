@@ -21,6 +21,17 @@ export class InMemoryDevices implements DeviceRepository {
   async findById(id: string) {
     return this.all.get(id) ?? null
   }
+  /** The fake knows no subscriptions: every old device counts as abandoned. */
+  async deleteAbandoned(createdBefore: Date) {
+    let deleted = 0
+    for (const [id, device] of this.all) {
+      if (device.createdAt < createdBefore) {
+        this.all.delete(id)
+        deleted++
+      }
+    }
+    return deleted
+  }
 }
 
 export class InMemorySubscriptions implements SubscriptionRepository {

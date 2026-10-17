@@ -97,17 +97,19 @@ describe('syncReminders', () => {
 })
 
 describe('syncPush', () => {
-  it('enables push when notifications are allowed and push is off', async () => {
-    const { push } = fakePush('off')
-    expect(await makeSyncPush({ push })('granted')).toBe('on')
-    expect(push.enable).toHaveBeenCalledOnce()
-  })
+  it.each(['off', 'on'] as const)(
+    'with notifications allowed, (re)enables push: status %s',
+    async (status) => {
+      const { push } = fakePush(status)
+      expect(await makeSyncPush({ push })('granted')).toBe('on')
+      expect(push.enable).toHaveBeenCalledOnce()
+    },
+  )
 
   it.each([
     ['default', 'off'],
     ['denied', 'off'],
     ['needs-install', 'unsupported'],
-    ['granted', 'on'],
     ['granted', 'unsupported'],
   ] as const)('leaves push alone: permission %s, status %s', async (permission, status) => {
     const { push } = fakePush(status)

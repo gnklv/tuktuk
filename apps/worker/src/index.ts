@@ -1,5 +1,6 @@
 // Composition root of the push server: wires Cloudflare bindings into use cases and handlers.
 import { makeDeviceUseCases } from './application/devices'
+import { makeCleanup } from './application/cleanup'
 import { makeNudgeCycle } from './application/nudge-cycle'
 import { handleRequest } from './http/router'
 import {
@@ -11,6 +12,9 @@ import {
 import { systemClock } from './infrastructure/system-clock'
 import { webCryptoSecrets } from './infrastructure/web-crypto-secrets'
 import { WebPushSender } from './infrastructure/web-push-sender'
+
+/** Must match the daily trigger in wrangler.jsonc. */
+const CLEANUP_CRON = '0 3 * * *'
 
 const pushSender = (env: Env) =>
   new WebPushSender({
@@ -36,11 +40,22 @@ export default {
         await env.DB.prepare('SELECT 1').first()
       },
       devices,
+      allowRegistration: async (clientKey) =>
+        (await env.REGISTRATION_LIMITER.limit({ key: clientKey })).success,
     })
   },
 
-  /** Cron, every minute: send the reminders that are due. */
+  /** Cron: reminders every minute, cleanup once a day (see wrangler.jsonc). */
   async scheduled(controller, env) {
+    if (controller.cron === CLEANUP_CRON) {
+      const deleted = await makeCleanup({
+        devices: new D1DeviceRepository(env.DB),
+        clock: systemClock,
+      })()
+      if (deleted) console.log('[cleanup] abandoned devices deleted:', deleted)
+      return
+    }
+
     const cycle = makeNudgeCycle({
       targets: new D1NudgeTargetRepository(env.DB),
       subscriptions: new D1SubscriptionRepository(env.DB),
